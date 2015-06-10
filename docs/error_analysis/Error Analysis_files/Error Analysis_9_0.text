@@ -1,0 +1,72 @@
+Processing zero
+Optimization terminated successfully.
+         Current function value: 0.000003
+         Iterations: 37
+         Function evaluations: 74
+Optimization terminated successfully.
+         Current function value: 0.000003
+         Iterations: 37
+         Function evaluations: 74
+Processing t +/- 0.9
+Optimization terminated successfully.
+         Current function value: 0.000047
+         Iterations: 33
+         Function evaluations: 66
+Optimization terminated successfully.
+         Current function value: 0.000001
+         Iterations: 39
+         Function evaluations: 78
+Processing r_i +/- 0.1
+Optimization terminated successfully.
+         Current function value: 0.000001
+         Iterations: 38
+         Function evaluations: 76
+Optimization terminated successfully.
+         Current function value: 0.000003
+         Iterations: 37
+         Function evaluations: 74
+Processing d_s +/- 0.1
+Optimization terminated successfully.
+         Current function value: 0.000001
+         Iterations: 38
+         Function evaluations: 76
+Optimization terminated successfully.
+         Current function value: 0.000001
+         Iterations: 38
+         Function evaluations: 76
+Processing d_f +/- 0.1
+Optimization terminated successfully.
+         Current function value: 0.000006
+         Iterations: 36
+         Function evaluations: 72
+Optimization terminated successfully.
+         Current function value: 0.000011
+         Iterations: 35
+         Function evaluations: 70
+Processing c_threads +/- 0.1
+Optimization terminated successfully.
+         Current function value: 0.000003
+         Iterations: 37
+         Function evaluations: 74
+Optimization terminated successfully.
+         Current function value: 0.000001
+         Iterations: 38
+         Function evaluations: 76
+Processing c_steps +/- 1.0
+Optimization terminated successfully.
+         Current function value: 0.000003
+         Iterations: 37
+         Function evaluations: 74
+Optimization terminated successfully.
+         Current function value: 0.000001
+         Iterations: 38
+         Function evaluations: 76
+
+
+zero error = 0.000002 arcseconds 
+t +/- 0.9 error = 13.537001 arcseconds 
+r_i +/- 0.1 error = 348.634066 arcseconds 
+d_s +/- 0.1 error = 223.616043 arcseconds 
+d_f +/- 0.1 error = 183.537149 arcseconds 
+c_threads +/- 0.1 error = 130.727963 arcseconds 
+c_steps +/- 1.0 error = 130.727963 arcseconds 

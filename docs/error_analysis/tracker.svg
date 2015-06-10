@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="0.48.4 r9939"
+   version="1.1"
+   id="svg2"
+   height="1052.3622047"
+   width="744.09448819"
+   sodipodi:docname="tracker.svg">
+  <defs
+     id="defs4">
+    <marker
+       inkscape:stockid="Arrow2Mstart"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow2Mstart"
+       style="overflow:visible">
+      <path
+         id="path4508"
+         style="fill-rule:evenodd;stroke-width:0.62500000;stroke-linejoin:round"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="scale(0.6) translate(0,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Mend"
+       style="overflow:visible;">
+      <path
+         id="path4493"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;"
+         transform="scale(0.4) rotate(180) translate(10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Lend"
+       style="overflow:visible;">
+      <path
+         id="path4487"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;"
+         transform="scale(0.8) rotate(180) translate(12.5,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow2Mend"
+       style="overflow:visible;">
+      <path
+         id="path4511"
+         style="fill-rule:evenodd;stroke-width:0.62500000;stroke-linejoin:round;"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="scale(0.6) rotate(180) translate(0,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mstart"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Mstart"
+       style="overflow:visible">
+      <path
+         id="path4490"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt"
+         transform="scale(0.4) translate(10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mstart"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Mstart-1"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path4508-3"
+         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(0.6,0.6)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Mend-0"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path4511-7"
+         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6,-0.6)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2"
+     inkscape:cx="316.64696"
+     inkscape:cy="940.15057"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer2"
+     showgrid="false"
+     inkscape:window-width="1852"
+     inkscape:window-height="1060"
+     inkscape:window-x="66"
+     inkscape:window-y="-3"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#000080"
+       id="rect3045"
+       width="6.5015631"
+       height="113"
+       x="229.65038"
+       y="109.5381"
+       transform="matrix(0.96592582,-0.25881905,0.25881905,0.96592583,0,0)"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <rect
+       style="fill:#784421"
+       id="rect3047"
+       width="6.5056305"
+       height="19"
+       x="229.65038"
+       y="217.5381"
+       transform="matrix(0.96592582,-0.25881905,0.25881905,0.96592583,0,0)"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <rect
+       style="fill:#008080"
+       id="rect3003-4"
+       width="181"
+       height="12"
+       x="90.281281"
+       y="171.94344"
+       transform="matrix(0.99207465,-0.12564988,0.12564988,0.99207465,0,0)"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <rect
+       style="fill:#d35f5f"
+       id="rect3023"
+       width="25"
+       height="10"
+       x="274"
+       y="176.36218"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <rect
+       style="fill:#008080"
+       id="rect3003"
+       width="181"
+       height="12"
+       x="118"
+       y="164.36218"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#008000;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="path2985"
+       sodipodi:cx="109.5"
+       sodipodi:cy="170.86218"
+       sodipodi:rx="10.5"
+       sodipodi:ry="10.5"
+       d="m 120,170.86218 a 10.5,10.5 0 1 1 -21,0 10.5,10.5 0 1 1 21,0 z"
+       transform="matrix(1.08,0,0,1.08,-7.76,-16.668975)"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.88556981px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 110.09099,150.16276 0,33.72206"
+       id="path3505"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.90296233px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 92.958969,167.77159 35.059661,0"
+       id="path3505-5"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 110.04349,193.97874 0,18.07542"
+       id="path3525"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.857;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:3.428,0.857;stroke-dashoffset:0"
+       d="m 289.93299,126.33705 0,61.15266"
+       id="path3505-7"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.57119739px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 283.17277,180.35998 14.02946,0"
+       id="path3505-5-6"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 290.09056,194.61956 0,18.07542"
+       id="path3525-1"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="guides" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Dims">
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.99569803px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow1Mstart);marker-mid:none;marker-end:url(#Arrow1Mend)"
+       d="m 111.71336,208.78379 176.61894,0"
+       id="path5112"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <path
+       sodipodi:type="arc"
+       style="fill:none"
+       id="path7223"
+       sodipodi:cx="158.74547"
+       sodipodi:cy="165.29672"
+       sodipodi:rx="10.606602"
+       sodipodi:ry="10.606602"
+       d="m 169.35207,165.29672 a 10.606602,10.606602 0 1 1 -21.2132,0 10.606602,10.606602 0 1 1 21.2132,0 z"
+       transform="translate(4.9497475,-8.131728)"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <g
+       id="g7848"
+       transform="translate(78.488853,-9.5459416)"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183">
+      <text
+         sodipodi:linespacing="125%"
+         id="text7840"
+         y="229.99699"
+         x="126.92567"
+         style="font-size:6px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Serif;-inkscape-font-specification:Serif"
+         xml:space="preserve"><tspan
+           y="229.99699"
+           x="126.92567"
+           id="tspan7842"
+           sodipodi:role="line">i</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text7844"
+         y="227.16858"
+         x="121.62237"
+         style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Serif;-inkscape-font-specification:Serif"
+         xml:space="preserve"><tspan
+           y="227.16858"
+           x="121.62237"
+           id="tspan7846"
+           sodipodi:role="line">r</tspan></text>
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 299.875,180.48718 16.4375,0"
+       id="path3051"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 300,164.54968 16.9375,0"
+       id="path3053"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:1,1;stroke-dashoffset:0"
+       d="m 291.5,148.79968 8.1875,0"
+       id="path3055"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 300.1875,148.67468 16.125,0"
+       id="path3867"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.94834423px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow2Mstart-1);marker-end:url(#Arrow2Mend-0)"
+       d="m 312.75,150.1796 0,12.86516"
+       id="path3869"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.94821823px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#Arrow2Mstart-1);marker-end:url(#Arrow2Mend-0)"
+       d="m 312.8125,166.05359 0,12.80468"
+       id="path4259"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183" />
+    <g
+       id="g4665"
+       transform="matrix(0,1,-1,0,473.89685,-166.27991)"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183">
+      <text
+         sodipodi:linespacing="125%"
+         id="text4649"
+         y="155.61218"
+         x="317.5625"
+         style="font-size:11px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Serif;-inkscape-font-specification:Serif"
+         xml:space="preserve"><tspan
+           y="155.61218"
+           x="317.5625"
+           id="tspan4651"
+           sodipodi:role="line">d</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text4657"
+         y="158.42468"
+         x="324.4375"
+         style="font-size:8px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Serif;-inkscape-font-specification:Serif"
+         xml:space="preserve"><tspan
+           y="158.42468"
+           x="324.4375"
+           id="tspan4659"
+           sodipodi:role="line">f</tspan></text>
+    </g>
+    <g
+       id="g4671"
+       transform="matrix(0,1,-1,0,487.86169,-152.06897)"
+       inkscape:export-filename="/home/russ/projects/gary/startracker/tracker_dims.png"
+       inkscape:export-xdpi="231.09183"
+       inkscape:export-ydpi="231.09183">
+      <text
+         sodipodi:linespacing="125%"
+         id="text4653"
+         y="170.11218"
+         x="319.625"
+         style="font-size:11px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Serif;-inkscape-font-specification:Serif"
+         xml:space="preserve"><tspan
+           y="170.11218"
+           x="319.625"
+           id="tspan4655"
+           sodipodi:role="line">d</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text4661"
+         y="172.23718"
+         x="326.125"
+         style="font-size:8px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Serif;-inkscape-font-specification:Serif"
+         xml:space="preserve"><tspan
+           y="172.23718"
+           x="326.125"
+           id="tspan4663"
+           sodipodi:role="line">s</tspan></text>
+    </g>
+  </g>
+</svg>
