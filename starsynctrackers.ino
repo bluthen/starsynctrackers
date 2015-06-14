@@ -1,39 +1,39 @@
-// ConstantSpeed.pde
-// -*- mode: C++ -*-
 //
 // If using Motorshield requires the Adafruit_Motorshield v2 library 
 //   https://github.com/adafruit/Adafruit_Motor_Shield_V2_Library
-// And AccelStepper with AFMotor support 
+// And you need AccelStepper fork with AFMotor support with library 
 //   https://github.com/adafruit/AccelStepper
-
-// This tutorial is for Adafruit Motorshield v2 only!
-// Will not work with v1 shields
+// The latest version of AccellStepper should have AFMotor support already.
+// http://www.airspayce.com/mikem/arduino/AccelStepper/
 
 #include <AccelStepper.h>
 #include <Wire.h>
 
-#define MOTORSHIELD 0 // Set to 1 if using Adafruit Motorshield
-#define EASYDRIVER 1  // Set to 1 if using Easydriver
+// STEPPER_DRIVER
+// 0 - Adafruit Motorshield https://www.adafruit.com/products/1438
+// 1 - Easy Driver https://www.sparkfun.com/products/12779
+#define STEPPER_DRIVER 0
 
 
-#if MOTORSHIELD == 1
+#if STEPPER_DRIVER == 0
 #include <Adafruit_MotorShield.h>
 #include "utility/Adafruit_PWMServoDriver.h"
 #endif
 
 //Constants
 static const float STEPS_PER_ROTATION = 200.0; // Steps per rotation, just steps not microsteps.
-static const float THREADS_PER_INCH = 20;  //Threads per inch or unit of measurement
+static const float THREADS_PER_INCH = 20;  // Threads per inch or unit of measurement
 static const float R_I = 7.28;     // Distance from plate pivot to rod when rod is perp from plate
 static const float D_S = 0.00591;   // Distance from rod pivot to plate
 static const float D_F = 0.252; // Distiance along rod from plate to starting position
-static const float RECALC_INTERVAL_S = 15; //Time in seconds between recalculating
+static const float RECALC_INTERVAL_S = 15; // Time in seconds between recalculating
 
-static const int STOP_BUTTON_PIN = 0;  //The pin the stop push switch is on
-static const float RESET_SPEED = -1000.0;  //The speed to go back to initial position at
+static const int STOP_BUTTON_PIN = 0;      // The pin the stop push switch is on
+static const int STOP_BUTTON_TYPE = 0;     // The type of switch 0 - Normally Closed; 1 - Normally Open
+static const float RESET_SPEED = -1000.0;  // The speed to go back to initial position at
 
 
-#if MOTORSHIELD == 1
+#if STEPPER_DRIVER == 0
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 // Or, create it with a different I2C address (say for stacking)
@@ -58,7 +58,7 @@ AccelStepper Astepper1(forwardstep1, backwardstep1); // use functions to step
 
 #endif
 
-#if EASYDRIVER == 1
+#if STEPPER_DRIVER == 1
 
 AccelStepper Astepper1(1, 9, 8);
 #define MICROSTEPS 8
@@ -71,7 +71,7 @@ void setup()
   Serial.println("Star Tracker v0.01");
   
   pinMode(STOP_BUTTON_PIN, INPUT_PULLUP);
-#if MOTORSHIELD == 1
+#if STEPPER_DRIVER == 0
   AFMS.begin();  // create with the default frequency 1.6KHz
 #endif
 
@@ -83,13 +83,11 @@ void setup()
 void goInitialPosition() 
 {
   Serial.println("goInitialPosition");
+  boolean started = false;
   delay(250);
   int buttonV = digitalRead(STOP_BUTTON_PIN);
-  boolean started = false;
   Serial.println(buttonV);
-  buttonV = digitalRead(STOP_BUTTON_PIN);
-  Serial.println(buttonV);
-  while (buttonV == HIGH)
+  while (buttonV == STOP_BUTTON_TYPE)
   {
     if (!started) {
       Serial.println("Set reset speed.");
