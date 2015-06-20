@@ -12,7 +12,7 @@
 // STEPPER_DRIVER
 // 0 - Adafruit Motorshield https://www.adafruit.com/products/1438
 // 1 - Easy Driver https://www.sparkfun.com/products/12779
-#define STEPPER_DRIVER 0
+#define STEPPER_DRIVER 1
 
 
 #if STEPPER_DRIVER == 0
@@ -28,9 +28,10 @@ static const float D_S = 0.00591;   // Distance from rod pivot to plate
 static const float D_F = 0.252; // Distiance along rod from plate to starting position
 static const float RECALC_INTERVAL_S = 15; // Time in seconds between recalculating
 
-static const int STOP_BUTTON_PIN = 0;      // The pin the stop push switch is on
-static const int STOP_BUTTON_TYPE = 0;     // The type of switch 0 - Normally Closed; 1 - Normally Open
-static const float RESET_SPEED = -1000.0;  // The speed to go back to initial position at
+static const int STOP_BUTTON_PIN = 2;      // The pin the stop push switch is on
+static const int STOP_BUTTON_TYPE = 1;     // The type of switch 0 - Normally Closed; 1 - Normally Open
+static const float RESET_SPEED = -8000.0;  // The speed to go back to initial position at
+static const float DIRECTION = -1.0; // 1 forward is forward; -1 + is forward is backward
 
 
 #if STEPPER_DRIVER == 0
@@ -87,11 +88,12 @@ void goInitialPosition()
   delay(250);
   int buttonV = digitalRead(STOP_BUTTON_PIN);
   Serial.println(buttonV);
+  Serial.println(buttonV == STOP_BUTTON_TYPE);
   while (buttonV == STOP_BUTTON_TYPE)
   {
     if (!started) {
       Serial.println("Set reset speed.");
-      Astepper1.setSpeed(RESET_SPEED);
+      Astepper1.setSpeed(DIRECTION*RESET_SPEED);
       started = true;
     }
     Astepper1.runSpeed();
@@ -145,8 +147,8 @@ void loop()
   if (time_diff_s >= RECALC_INTERVAL_S) {
     time_solar_last_s = time_solar_s;
     steps_wanted = tracker_calc_steps(time_solar_s + RECALC_INTERVAL_S/2.0);
-    spd = (steps_wanted - Astepper1.currentPosition())/(RECALC_INTERVAL_S/2);
-    Astepper1.setSpeed(spd);
+    spd = (steps_wanted - DIRECTION*Astepper1.currentPosition())/(RECALC_INTERVAL_S/2);
+    Astepper1.setSpeed(DIRECTION*spd);
     Serial.println(spd);
   }
   Astepper1.runSpeed();
