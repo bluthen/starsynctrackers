@@ -3,6 +3,8 @@
 //   https://github.com/adafruit/Adafruit_Motor_Shield_V2_Library
 // And you need AccelStepper fork with AFMotor support with library 
 //   https://github.com/adafruit/AccelStepper
+// if using adafruit motor shield v1 then you need v1 library
+//' https://github.com/adafruit/Adafruit-Motor-Shield-library
 // The latest version of AccellStepper should have AFMotor support already.
 // http://www.airspayce.com/mikem/arduino/AccelStepper/
 
@@ -10,31 +12,31 @@
 #include <Wire.h>
 
 // STEPPER_DRIVER
-// 0 - Adafruit Motorshield https://www.adafruit.com/products/1438
+// 0 - Adafruit Motorshield V2 https://www.adafruit.com/products/1438
 // 1 - Easy Driver https://www.sparkfun.com/products/12779
-#define STEPPER_DRIVER 1
+// 2 - Adafruit Motorshield V1 https://www.adafruit.com/products/81
+#define STEPPER_DRIVER 2
 
-
-#if STEPPER_DRIVER == 0
-#include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_PWMServoDriver.h"
-#endif
 
 //Constants
 static const float STEPS_PER_ROTATION = 200.0; // Steps per rotation, just steps not microsteps.
 static const float THREADS_PER_INCH = 20;  // Threads per inch or unit of measurement
 static const float R_I = 7.28;     // Distance from plate pivot to rod when rod is perp from plate
 static const float D_S = 0.00591;   // Distance from rod pivot to plate
-static const float D_F = 0.252; // Distiance along rod from plate to starting position
+static const float D_F = 0.432; // Distiance along rod from plate to starting position
 static const float RECALC_INTERVAL_S = 15; // Time in seconds between recalculating
 
-static const int STOP_BUTTON_PIN = 2;      // The pin the stop push switch is on
+static const int STOP_BUTTON_PIN = A4;      // The pin the stop push switch is on
 static const int STOP_BUTTON_TYPE = 1;     // The type of switch 0 - Normally Closed; 1 - Normally Open
 static const float RESET_SPEED = -8000.0;  // The speed to go back to initial position at
-static const float DIRECTION = -1.0; // 1 forward is forward; -1 + is forward is backward
+static const float DIRECTION = 1.0; // 1 forward is forward; -1 + is forward is backward
 
 
 #if STEPPER_DRIVER == 0
+
+#include <Adafruit_MotorShield.h>
+#include "utility/Adafruit_PWMServoDriver.h"
+
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 // Or, create it with a different I2C address (say for stacking)
@@ -42,17 +44,25 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
 // Connect a stepper motor with 200 steps per revolution (1.8 degree)
 // to motor port #2 (M3 and M4)
-//Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 2);
+Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 2);
 
 //motor port #1 M1 and M2
-Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 1);
+//Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 1);
 
 // you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
-void forwardstep1() {  
-  myStepper1->onestep(BACKWARD, MICROSTEP);
+void forwardstep1() {
+  if (DIRECTION > 0) {  
+    myStepper1->onestep(BACKWARD, MICROSTEP);
+  } else {
+    myStepper1->onestep(BACKWARD, DOUBLE);
+  }
 }
 void backwardstep1() {  
-  myStepper1->onestep(FORWARD, DOUBLE);
+  if (DIRECTION > 0) {  
+    myStepper1->onestep(FORWARD, DOUBLE);
+  } else {
+    myStepper1->onestep(FORWARD, MICROSTEP);
+  }
 }
 
 AccelStepper Astepper1(forwardstep1, backwardstep1); // use functions to step
@@ -65,6 +75,34 @@ AccelStepper Astepper1(1, 9, 8);
 #define MICROSTEPS 8
 
 #endif
+
+
+#if STEPPER_DRIVER == 2
+
+#include <AFMotor.h>
+AF_Stepper myStepper1(STEPS_PER_ROTATION, 2);
+// you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
+void forwardstep1() {
+  if (DIRECTION > 0) {  
+    myStepper1.onestep(BACKWARD, MICROSTEP);
+  } else {
+    myStepper1.onestep(BACKWARD, DOUBLE);
+  }
+}
+void backwardstep1() {  
+  if (DIRECTION > 0) {  
+    myStepper1.onestep(FORWARD, DOUBLE);
+  } else {
+    myStepper1.onestep(FORWARD, MICROSTEP);
+  }
+}
+
+AccelStepper Astepper1(forwardstep1, backwardstep1); // use functions to step
+
+#endif
+
+
+
 
 void setup()
 {  
