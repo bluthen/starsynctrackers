@@ -28,7 +28,7 @@ static const float RECALC_INTERVAL_S = 15; // Time in seconds between recalculat
 
 static const int STOP_BUTTON_PIN = A4;      // The pin the stop push switch is on
 static const int STOP_BUTTON_TYPE = 1;     // The type of switch 0 - Normally Closed; 1 - Normally Open
-static const float RESET_SPEED = -8000.0;  // The speed to go back to initial position at
+static const float RESET_SPEED = -300.0;  // The speed to go back to initial position at
 static const float DIRECTION = 1.0; // 1 forward is forward; -1 + is forward is backward
 
 
