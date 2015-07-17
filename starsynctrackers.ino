@@ -28,12 +28,11 @@ static const float RECALC_INTERVAL_S = 15; // Time in seconds between recalculat
 
 static const int STOP_BUTTON_PIN = A4;      // The pin the stop push switch is on
 static const int STOP_BUTTON_TYPE = 1;     // The type of switch 0 - Normally Closed; 1 - Normally Open
-static const float RESET_SPEED = -300.0;  // The speed to go back to initial position at
 static const float DIRECTION = 1.0; // 1 forward is forward; -1 + is forward is backward
 
 
 #if STEPPER_DRIVER == 0
-
+static const float RESET_SPEED = -1000.0;  // The speed to go back to initial position at
 #include <Adafruit_MotorShield.h>
 #include "utility/Adafruit_PWMServoDriver.h"
 
@@ -70,6 +69,7 @@ AccelStepper Astepper1(forwardstep1, backwardstep1); // use functions to step
 #endif
 
 #if STEPPER_DRIVER == 1
+static const float RESET_SPEED = -2000.0;  // The speed to go back to initial position at
 
 AccelStepper Astepper1(1, 9, 8);
 #define MICROSTEPS 8
@@ -78,7 +78,7 @@ AccelStepper Astepper1(1, 9, 8);
 
 
 #if STEPPER_DRIVER == 2
-
+static const float RESET_SPEED = -800.0;  // The speed to go back to initial position at
 #include <AFMotor.h>
 AF_Stepper myStepper1(STEPS_PER_ROTATION, 2);
 // you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
