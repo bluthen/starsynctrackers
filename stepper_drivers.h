@@ -13,10 +13,10 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
 // Connect a stepper motor with 200 steps per revolution (1.8 degree)
 // to motor port #2 (M3 and M4)
-Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 2);
+//Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 2);
 
 //motor port #1 M1 and M2
-//Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 1);
+Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 1);
 
 // you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
 void forwardstep1() {
@@ -40,7 +40,7 @@ boolean reset_started = false;
 inline void reset_lp() {
     if (!reset_started) {
       Serial.println("Set reset speed.");
-      Astepper1.setSpeed(DIRECTION*450);
+      Astepper1.setSpeed(DIRECTION*MICROSTEPS*450);
       reset_started = true;
     }
     Astepper1.runSpeed();
@@ -82,7 +82,7 @@ inline void reset_done() {
 #if STEPPER_DRIVER == 2
 
 #include <AFMotor.h>
-AF_Stepper myStepper1(STEPS_PER_ROTATION, 2);
+AF_Stepper myStepper1(STEPS_PER_ROTATION, 1);
 // you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
 void forwardstep1() {
   if (DIRECTION > 0) {  
@@ -105,7 +105,7 @@ boolean reset_started = false;
 inline void reset_lp() {
     if (!reset_started) {
       Serial.println("Set reset speed.");
-      Astepper1.setSpeed(DIRECTION*450);
+      Astepper1.setSpeed(DIRECTION*MICROSTEPS*450);
       reset_started = true;
     }
     Astepper1.runSpeed();
