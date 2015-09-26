@@ -5,17 +5,16 @@
 //   https://github.com/adafruit/AccelStepper
 // if using adafruit motor shield v1 then you need v1 library
 //' https://github.com/adafruit/Adafruit-Motor-Shield-library
-// The latest version of AccellStepper should have AFMotor support already.
-// http://www.airspayce.com/mikem/arduino/AccelStepper/
 
 #include <AccelStepper.h>
 #include <Wire.h>
 
 // STEPPER_DRIVER
 // 0 - Adafruit Motorshield V2 https://www.adafruit.com/products/1438
-// 1 - Easy Driver https://www.sparkfun.com/products/12779
+// 1 - Easy Driver https://www.sparkfun.com/products/12779 (http://www.schmalzhaus.com/EasyDriver/index.html)
 // 2 - Adafruit Motorshield V1 https://www.adafruit.com/products/81
-#define STEPPER_DRIVER 2
+// 3 - Big Easy Driver https://www.sparkfun.com/products/12859 (http://www.schmalzhaus.com/BigEasyDriver/)
+#define STEPPER_DRIVER 1
 
 
 //Constants
@@ -28,81 +27,9 @@ static const float RECALC_INTERVAL_S = 15; // Time in seconds between recalculat
 
 static const int STOP_BUTTON_PIN = A4;      // The pin the stop push switch is on
 static const int STOP_BUTTON_TYPE = 1;     // The type of switch 0 - Normally Closed; 1 - Normally Open
-static const float RESET_SPEED = -8000.0;  // The speed to go back to initial position at
 static const float DIRECTION = 1.0; // 1 forward is forward; -1 + is forward is backward
 
-
-#if STEPPER_DRIVER == 0
-
-#include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_PWMServoDriver.h"
-
-// Create the motor shield object with the default I2C address
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
-// Or, create it with a different I2C address (say for stacking)
-// Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x61); 
-
-// Connect a stepper motor with 200 steps per revolution (1.8 degree)
-// to motor port #2 (M3 and M4)
-Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 2);
-
-//motor port #1 M1 and M2
-//Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 1);
-
-// you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
-void forwardstep1() {
-  if (DIRECTION > 0) {  
-    myStepper1->onestep(BACKWARD, MICROSTEP);
-  } else {
-    myStepper1->onestep(BACKWARD, DOUBLE);
-  }
-}
-void backwardstep1() {  
-  if (DIRECTION > 0) {  
-    myStepper1->onestep(FORWARD, DOUBLE);
-  } else {
-    myStepper1->onestep(FORWARD, MICROSTEP);
-  }
-}
-
-AccelStepper Astepper1(forwardstep1, backwardstep1); // use functions to step
-
-#endif
-
-#if STEPPER_DRIVER == 1
-
-AccelStepper Astepper1(1, 9, 8);
-#define MICROSTEPS 8
-
-#endif
-
-
-#if STEPPER_DRIVER == 2
-
-#include <AFMotor.h>
-AF_Stepper myStepper1(STEPS_PER_ROTATION, 2);
-// you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
-void forwardstep1() {
-  if (DIRECTION > 0) {  
-    myStepper1.onestep(BACKWARD, MICROSTEP);
-  } else {
-    myStepper1.onestep(BACKWARD, DOUBLE);
-  }
-}
-void backwardstep1() {  
-  if (DIRECTION > 0) {  
-    myStepper1.onestep(FORWARD, DOUBLE);
-  } else {
-    myStepper1.onestep(FORWARD, MICROSTEP);
-  }
-}
-
-AccelStepper Astepper1(forwardstep1, backwardstep1); // use functions to step
-
-#endif
-
-
-
+#include "stepper_drivers.h"
 
 void setup()
 {  
@@ -122,23 +49,17 @@ void setup()
 void goInitialPosition() 
 {
   Serial.println("goInitialPosition");
-  boolean started = false;
   delay(250);
   int buttonV = digitalRead(STOP_BUTTON_PIN);
   Serial.println(buttonV);
   Serial.println(buttonV == STOP_BUTTON_TYPE);
   while (buttonV == STOP_BUTTON_TYPE)
   {
-    if (!started) {
-      Serial.println("Set reset speed.");
-      Astepper1.setSpeed(DIRECTION*RESET_SPEED);
-      started = true;
-    }
-    Astepper1.runSpeed();
+    reset_lp();
     buttonV = digitalRead(STOP_BUTTON_PIN);
-    //Serial.println('ipl');
   }
   Serial.println(buttonV);
+  reset_done();
   Astepper1.setSpeed(0);
   Astepper1.runSpeed();
   Serial.println("At initial position");
