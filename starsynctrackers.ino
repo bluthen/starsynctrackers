@@ -14,20 +14,20 @@
 // 1 - Easy Driver https://www.sparkfun.com/products/12779 (http://www.schmalzhaus.com/EasyDriver/index.html)
 // 2 - Adafruit Motorshield V1 https://www.adafruit.com/products/81
 // 3 - Big Easy Driver https://www.sparkfun.com/products/12859 (http://www.schmalzhaus.com/BigEasyDriver/)
-#define STEPPER_DRIVER 1
+#define STEPPER_DRIVER 3
 
 
 //Constants
 static const float STEPS_PER_ROTATION = 200.0; // Steps per rotation, just steps not microsteps.
 static const float THREADS_PER_INCH = 20;  // Threads per inch or unit of measurement
-static const float R_I = 7.28;     // Distance from plate pivot to rod when rod is perp from plate
+static const float R_I = 7.3975;     // Distance from plate pivot to rod when rod is perp from plate // Russ: 7.28
 static const float D_S = 0.00591;   // Distance from rod pivot to plate
-static const float D_F = 0.432; // Distiance along rod from plate to starting position
+static const float D_F = 0.410; // Distiance along rod from plate to starting position // Russ: 0.432
 static const float RECALC_INTERVAL_S = 15; // Time in seconds between recalculating
 
 static const int STOP_BUTTON_PIN = A4;      // The pin the stop push switch is on
 static const int STOP_BUTTON_TYPE = 1;     // The type of switch 0 - Normally Closed; 1 - Normally Open
-static const float DIRECTION = 1.0; // 1 forward is forward; -1 + is forward is backward
+static const float DIRECTION = -1.0; // 1 forward is forward; -1 + is forward is backward
 
 #include "stepper_drivers.h"
 

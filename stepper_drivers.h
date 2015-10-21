@@ -128,6 +128,8 @@ inline void reset_lp() {
   if (!reset_started) {
     reset_started = true;
     if (DIRECTION > 0) {
+      digitalWrite(8, LOW);
+    } else {
       digitalWrite(8, HIGH);
     }
   }
