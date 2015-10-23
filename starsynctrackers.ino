@@ -1,8 +1,8 @@
 //
-// If using Motorshield requires the Adafruit_Motorshield v2 library 
-//   https://github.com/adafruit/Adafruit_Motor_Shield_V2_Library
-// And you need AccelStepper fork with AFMotor support with library 
+// Need AccelStepper fork with AFMotor support with library 
 //   https://github.com/adafruit/AccelStepper
+// If using Adafruit v2 Motorshield requires the Adafruit_Motorshield v2 library 
+//   https://github.com/adafruit/Adafruit_Motor_Shield_V2_Library
 // if using adafruit motor shield v1 then you need v1 library
 //' https://github.com/adafruit/Adafruit-Motor-Shield-library
 
