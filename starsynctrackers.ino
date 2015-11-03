@@ -25,18 +25,42 @@ static const float D_S = 0.00591;   // Distance from rod pivot to plate
 static const float D_F = 0.410; // Distiance along rod from plate to starting position // Russ: 0.432
 static const float RECALC_INTERVAL_S = 15; // Time in seconds between recalculating
 
+// STOP_TYPE
+// 0 for switch button type
+// 1 for analog proximity type
+#define STOP_TYPE 0
+static const int STOP_ANALOG_POWER_PINS[3] = {5, 6, 7}; //Pins stop switch gets power from, Digital pins only.
+static const int STOP_ANALOG_POWER_STOP_VALUE = 300; // 0 - 1023 (0 closer, 1023 farther)
 static const int STOP_BUTTON_PIN = A4;      // The pin the stop push switch is on
 static const int STOP_BUTTON_TYPE = 1;     // The type of switch 0 - Normally Closed; 1 - Normally Open
 static const float DIRECTION = -1.0; // 1 forward is forward; -1 + is forward is backward
 
 #include "stepper_drivers.h"
 
+#if STOP_TYPE == 1
+void stop_analog_power(boolean powered) {
+  // Switch all pins at same time so one pin doesn't give all the current for some time.
+  uint8_t d = (1 << STOP_ANALOG_POWER_PINS[0]) + (1 << STOP_ANALOG_POWER_PINS[1]) + (1 << STOP_ANALOG_POWER_PINS[2]);
+  if (powered) {
+    PORTD |= d;
+    // digitalWrite(STOP_ANALOG_POWER_PINS[0], HIGH); digitalWrite(STOP_ANALOG_POWER_PINS[1], HIGH); digitalWrite(STOP_ANALOG_POWER_PINS[2], HIGH);
+  } else {
+    PORTD &= 0xFF ^ d;
+    // digitalWrite(STOP_ANALOG_POWER_PINS[0], LOW); digitalWrite(STOP_ANALOG_POWER_PINS[1], LOW); digitalWrite(STOP_ANALOG_POWER_PINS[2], LOW);    
+  }
+}
+#endif
+
+
 void setup()
 {  
   Serial.begin(9600);           // set up Serial library at 9600 bps
   Serial.println("Star Tracker v0.01");
-  
+
+#if STOP_TYPE == 0
   pinMode(STOP_BUTTON_PIN, INPUT_PULLUP);
+#endif
+
 #if STEPPER_DRIVER == 0
   AFMS.begin();  // create with the default frequency 1.6KHz
 #endif
@@ -50,18 +74,31 @@ void goInitialPosition()
 {
   Serial.println("goInitialPosition");
   delay(250);
+
+#if STOP_TYPE == 0
   int buttonV = digitalRead(STOP_BUTTON_PIN);
-  Serial.println(buttonV);
-  Serial.println(buttonV == STOP_BUTTON_TYPE);
   while (buttonV == STOP_BUTTON_TYPE)
+#else
+  stop_button_analog_power(true);
+  delay(100);
+  int buttonV = analogRead(STOP_BUTTON_PIN);
+  while (buttonV > STOP_ANALOG_POWER_STOP_VALUE)
+#endif
   {
     reset_lp();
+
+#if STOP_TYPE == 0
     buttonV = digitalRead(STOP_BUTTON_PIN);
+#else
+    buttonV = analogRead(STOP_BUTTON_PIN); //TODO: Does analog read greatly slow down reset
+#endif
   }
-  Serial.println(buttonV);
   reset_done();
   Astepper1.setSpeed(0);
   Astepper1.runSpeed();
+#if STOP_TYPE == 1
+  stop_button_analog_power(false);
+#endif
   Serial.println("At initial position");
   delay(250);
   Serial.println("goInitialPosition end");
