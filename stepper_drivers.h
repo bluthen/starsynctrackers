@@ -124,6 +124,7 @@ AccelStepper Astepper1(1, 9, 8);
 #define MICROSTEPS 16
 
 boolean reset_started = false;
+int reset_lp_loop = 0;
 inline void reset_lp() {
   if (!reset_started) {
     reset_started = true;
@@ -133,10 +134,14 @@ inline void reset_lp() {
       digitalWrite(8, HIGH);
     }
   }
-  digitalWrite(9, HIGH);
-  delayMicroseconds(75);
-  digitalWrite(9, LOW);
-  delayMicroseconds(75);
+  reset_lp_loop = 0;
+  while(reset_lp_loop < 200) {
+    digitalWrite(9, HIGH);
+    delayMicroseconds(75);
+    digitalWrite(9, LOW);
+    delayMicroseconds(75);
+    reset_lp_loop++;
+  }
 }
 
 inline void reset_done() {
