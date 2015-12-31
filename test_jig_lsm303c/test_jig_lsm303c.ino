@@ -24,6 +24,7 @@
 LSM303C myIMU;
 
 void setup() {
+  delay(1000);
   Serial.begin(115200);
 
   if (myIMU.begin(
@@ -101,6 +102,7 @@ void setup() {
     Serial.println("Failed setup.");
     while(1);
   }
+  delay(2000);
 }
 
 float x, y, z;
@@ -109,8 +111,17 @@ void loop()
 {
 
   x = myIMU.readAccelX();
+  while (isnan(x)) {
+    x = myIMU.readAccelX();
+  }
   y = myIMU.readAccelY();
+  while (isnan(y)){
+    y = myIMU.readAccelY();
+  }
   z = myIMU.readAccelZ();
+  while (isnan(z)){
+    z = myIMU.readAccelZ();
+  }
 
   Serial.print(x);
   Serial.print(",");
