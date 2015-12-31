@@ -21,16 +21,16 @@ Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 1);
 // you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
 void forwardstep1() {
   if (DIRECTION > 0) {  
-    myStepper1->onestep(BACKWARD, MICROSTEP);
+    myStepper1->onestep(FORWARD, MICROSTEP);
   } else {
-    myStepper1->onestep(BACKWARD, DOUBLE);
+    myStepper1->onestep(FORWARD, DOUBLE);
   }
 }
 void backwardstep1() {  
   if (DIRECTION > 0) {  
-    myStepper1->onestep(FORWARD, DOUBLE);
+    myStepper1->onestep(BACKWARD, DOUBLE);
   } else {
-    myStepper1->onestep(FORWARD, MICROSTEP);
+    myStepper1->onestep(BACKWARD, MICROSTEP);
   }
 }
 
@@ -40,7 +40,7 @@ boolean reset_started = false;
 inline void reset_lp() {
     if (!reset_started) {
       Serial.println("Set reset speed.");
-      Astepper1.setSpeed(DIRECTION*MICROSTEPS*450);
+      Astepper1.setSpeed(-DIRECTION*450);
       reset_started = true;
     }
     Astepper1.runSpeed();
@@ -86,16 +86,16 @@ AF_Stepper myStepper1(STEPS_PER_ROTATION, 1);
 // you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
 void forwardstep1() {
   if (DIRECTION > 0) {  
-    myStepper1.onestep(BACKWARD, MICROSTEP);
+    myStepper1.onestep(FORWARD, MICROSTEP);
   } else {
-    myStepper1.onestep(BACKWARD, DOUBLE);
+    myStepper1.onestep(FORWARD, DOUBLE);
   }
 }
 void backwardstep1() {  
   if (DIRECTION > 0) {  
-    myStepper1.onestep(FORWARD, DOUBLE);
+    myStepper1.onestep(BACKWARD, DOUBLE);
   } else {
-    myStepper1.onestep(FORWARD, MICROSTEP);
+    myStepper1.onestep(BACKWARD, MICROSTEP);
   }
 }
 
@@ -105,7 +105,7 @@ boolean reset_started = false;
 inline void reset_lp() {
     if (!reset_started) {
       Serial.println("Set reset speed.");
-      Astepper1.setSpeed(DIRECTION*MICROSTEPS*450);
+      Astepper1.setSpeed(-DIRECTION*450);
       reset_started = true;
     }
     Astepper1.runSpeed();
