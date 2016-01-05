@@ -37,13 +37,16 @@ void backwardstep1() {
 AccelStepper Astepper1(forwardstep1, backwardstep1); // use functions to step
 
 boolean reset_started = false;
-inline void reset_lp() {
-    if (!reset_started) {
-      Serial.println("Set reset speed.");
-      Astepper1.setSpeed(-DIRECTION*450);
-      reset_started = true;
-    }
-    Astepper1.runSpeed();
+unsigned long reset_start_ms = 0.0;
+unsigned long reset_diff_ms = 0.0;
+unsigned long reset_count = 0;
+inline void reset_lp(int full_rate) {
+  if (full_rate > 0) {  
+    myStepper1->onestep(FORWARD, DOUBLE);
+  } else {
+    myStepper1->onestep(BACKWARD, DOUBLE);
+  }
+  delayMicroseconds(300);
 }
 
 inline void reset_done() {

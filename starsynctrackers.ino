@@ -69,6 +69,10 @@ void setup()
   AFMS.begin();  // create with the default frequency 1.6KHz
 #endif
 
+  while(true) {
+    reset_lp(400*16);
+  }
+
   goInitialPosition();
   Astepper1.setCurrentPosition(0);
 }
@@ -90,7 +94,7 @@ void goInitialPosition()
   while (buttonV > STOP_ANALOG_POWER_STOP_VALUE)
 #endif
   {
-    reset_lp();
+    reset_lp(-DIRECTION*400);
 
 #if STOP_TYPE == 0
     buttonV = digitalRead(STOP_BUTTON_PIN);
