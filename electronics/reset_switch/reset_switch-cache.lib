@@ -1,0 +1,95 @@
+EESchema-LIBRARY Version 2.3
+#encoding utf-8
+#
+# Darl_NPN
+#
+DEF Darl_NPN Q 0 10 Y Y 1 F N
+F0 "Q" 0 200 50 H V C CNN
+F1 "Darl_NPN" -200 -150 50 H V C CNN
+F2 "" 0 -50 50 H V C CNN
+F3 "" 0 -50 50 H V C CNN
+$FPLIST
+ OldSowjetaera_Transistor*
+ Q_*
+ Transistor_*
+ SO-8_PowerPAK_Vishay_Single
+ VLM0806_Housing
+ VLM0806_Housing*
+ powermite3
+ sc70
+ sc70*
+ sot*
+ TO-220_Bipolar*
+ TO-220_Neutral123
+ TO-247_Horizontal_Neutral123
+$ENDFPLIST
+DRAW
+P 2 0 0 0  -150 -100  -150 100 N
+P 2 0 0 0  50 0  50 -200 N
+P 2 0 1 0  50 -100  150 -200 N
+P 3 0 1 0  -150 0  -50 -100  50 -100 N
+P 3 0 1 0  -150 0  -50 100  150 100 N
+P 3 0 1 0  -50 -100  -65 -20  -130 -90 F
+P 3 0 1 0  50 -100  150 0  150 100 N
+P 3 0 1 0  150 -200  135 -120  70 -185 F
+X ~ 1 150 -300 100 U 40 40 1 1 P
+X ~ 2 -250 0 100 R 40 40 1 1 I
+X ~ 3 150 200 100 D 40 40 1 1 P
+ENDDRAW
+ENDDEF
+#
+# QRE1113
+#
+DEF QRE1113 Q 0 40 Y Y 1 L N
+F0 "Q" 50 150 50 H V C CNN
+F1 "QRE1113" 400 -250 50 H V C CNN
+F2 "" 0 0 60 H V C CNN
+F3 "" 0 0 60 H V C CNN
+DRAW
+P 2 1 0 0  -200 -200  -100 -200 N
+P 2 1 0 0  -200 100  -200 -200 N
+P 2 1 0 0  -100 -200  200 -200 N
+P 2 1 0 0  -100 100  -200 100 N
+P 2 1 0 0  -100 100  0 0 N
+P 2 1 0 0  -60 -160  -100 -200 N
+P 2 1 0 0  -60 -160  -60 -120 N
+P 2 1 0 0  -60 -160  -20 -160 N
+P 2 1 0 0  0 -100  -60 -160 N
+P 2 1 0 0  0 -100  0 -160 N
+P 2 1 0 0  0 0  0 -100 N
+P 2 1 0 0  0 0  0 50 N
+P 2 1 0 0  150 -100  200 -100 N
+P 2 1 0 0  200 -200  300 -200 N
+P 2 1 0 0  200 -100  200 -200 N
+P 2 1 0 0  200 -100  260 -100 N
+P 2 1 0 0  200 100  -100 100 N
+P 2 1 0 0  200 100  200 -100 N
+P 2 1 0 0  300 -200  300 100 N
+P 2 1 0 0  300 100  200 100 N
+P 8 1 1 0  200 -100  260 -40  260 -40  150 -40  150 -40  190 -80  190 -80  200 -100 F
+X A 1 200 200 100 D 40 40 1 1 B
+X K 2 200 -300 100 U 40 40 1 1 B
+X C 3 -100 200 100 D 40 40 1 1 B
+X E 4 -100 -300 100 U 40 40 1 1 B
+ENDDRAW
+ENDDEF
+#
+# R
+#
+DEF R R 0 0 N Y 1 F N
+F0 "R" 80 0 50 V V C CNN
+F1 "R" 0 0 50 V V C CNN
+F2 "" -70 0 50 V V C CNN
+F3 "" 0 0 50 H V C CNN
+$FPLIST
+ R_*
+ Resistor_*
+$ENDFPLIST
+DRAW
+S -40 -100 40 100 0 1 10 N
+X ~ 1 0 150 50 D 50 50 1 1 P
+X ~ 2 0 -150 50 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+#End Library
