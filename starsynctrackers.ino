@@ -15,7 +15,7 @@
 // 1 - Easy Driver https://www.sparkfun.com/products/12779 (http://www.schmalzhaus.com/EasyDriver/index.html)
 // 2 - Adafruit Motorshield V1 https://www.adafruit.com/products/81
 // 3 - Big Easy Driver https://www.sparkfun.com/products/12859 (http://www.schmalzhaus.com/BigEasyDriver/)
-#define STEPPER_DRIVER 0
+#define STEPPER_DRIVER 3
 
 
 //Constants
@@ -29,10 +29,10 @@ static const float RECALC_INTERVAL_S = 15; // Time in seconds between recalculat
 // STOP_TYPE
 // 0 for switch button type
 // 1 for analog proximity type
-#define STOP_TYPE 0
-static const int STOP_ANALOG_POWER_PINS[3] = {5, 6, 7}; //Pins stop switch gets power from, Digital pins only.
-static const int STOP_ANALOG_POWER_STOP_VALUE = 300; // 0 - 1023 (0 closer, 1023 farther)
-static const int STOP_BUTTON_PIN = A1;      // The pin the stop push switch is on
+#define STOP_TYPE 1
+static const int STOP_ANALOG_POWER_PIN = 10; //Pins stop switch gets power from, Digital pins only.
+static const int STOP_ANALOG_POWER_STOP_VALUE = 800; // 0 - 1023 (0 closer, 1023 farther)
+static const int STOP_BUTTON_PIN = A4;      // The pin the stop push switch is on
 static const int STOP_BUTTON_TYPE = 1;     // The type of switch 0 - Normally Closed; 1 - Normally Open
 static const float DIRECTION = 1.0; // 1 forward is forward; -1 + is forward is backward
 
@@ -41,16 +41,10 @@ static const float DIRECTION = 1.0; // 1 forward is forward; -1 + is forward is 
 
 #if STOP_TYPE == 1
 void stop_button_analog_power(boolean powered) {
-  //TODO: Three pins doesn't seem to be enough. Need to use a transistor, FET, or have it always on.
-  return;
-  // Switch all pins at same time so one pin doesn't give all the current for some time.
-  uint8_t d = (1 << STOP_ANALOG_POWER_PINS[0]) + (1 << STOP_ANALOG_POWER_PINS[1]) + (1 << STOP_ANALOG_POWER_PINS[2]);
   if (powered) {
-    //PORTD |= d;
-    digitalWrite(STOP_ANALOG_POWER_PINS[0], HIGH); digitalWrite(STOP_ANALOG_POWER_PINS[1], HIGH); digitalWrite(STOP_ANALOG_POWER_PINS[2], HIGH);
+    digitalWrite(STOP_ANALOG_POWER_PIN, HIGH);
   } else {
-    //PORTD &= 0xFF ^ d;
-    // digitalWrite(STOP_ANALOG_POWER_PINS[0], LOW); digitalWrite(STOP_ANALOG_POWER_PINS[1], LOW); digitalWrite(STOP_ANALOG_POWER_PINS[2], LOW);    
+    digitalWrite(STOP_ANALOG_POWER_PIN, LOW);    
   }
 }
 #endif
@@ -63,15 +57,17 @@ void setup()
 
 #if STOP_TYPE == 0
   pinMode(STOP_BUTTON_PIN, INPUT_PULLUP);
+#else
+  pinMode(STOP_ANALOG_POWER_PIN, OUTPUT);
 #endif
 
 #if STEPPER_DRIVER == 0
   AFMS.begin();  // create with the default frequency 1.6KHz
 #endif
 
-  while(true) {
-    reset_lp(400*16);
-  }
+  //while(true) {
+  //  reset_lp();
+  //}
 
   goInitialPosition();
   Astepper1.setCurrentPosition(0);
@@ -87,6 +83,7 @@ void goInitialPosition()
   int buttonV = digitalRead(STOP_BUTTON_PIN);
   while (buttonV == STOP_BUTTON_TYPE)
 #else
+  int count = 0;
   stop_button_analog_power(true);
   delay(100);
   int buttonV = analogRead(STOP_BUTTON_PIN);
@@ -94,12 +91,16 @@ void goInitialPosition()
   while (buttonV > STOP_ANALOG_POWER_STOP_VALUE)
 #endif
   {
-    reset_lp(-DIRECTION*400);
+    reset_lp();
 
 #if STOP_TYPE == 0
     buttonV = digitalRead(STOP_BUTTON_PIN);
 #else
-    buttonV = analogRead(STOP_BUTTON_PIN); //TODO: Does analog read greatly slow down reset
+    count++;
+    if(count > 20 || (count > 5 && buttonV < STOP_ANALOG_POWER_STOP_VALUE+50)) {
+      buttonV = analogRead(STOP_BUTTON_PIN); //TODO: Does analog read greatly slow down reset
+      count = 0;
+    }
 #endif
   }
   reset_done();

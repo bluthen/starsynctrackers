@@ -40,7 +40,8 @@ boolean reset_started = false;
 unsigned long reset_start_ms = 0.0;
 unsigned long reset_diff_ms = 0.0;
 unsigned long reset_count = 0;
-inline void reset_lp(int full_rate) {
+inline void reset_lp() {
+  int full_rate = -1;
   if (full_rate > 0) {  
     myStepper1->onestep(FORWARD, DOUBLE);
   } else {
@@ -138,7 +139,7 @@ inline void reset_lp() {
     }
   }
   reset_lp_loop = 0;
-  while(reset_lp_loop < 200) {
+  while(reset_lp_loop < 1) {
     digitalWrite(9, HIGH);
     delayMicroseconds(75);
     digitalWrite(9, LOW);
