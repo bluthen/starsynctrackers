@@ -25,6 +25,7 @@ static const float R_I = 7.3975;     // Distance from plate pivot to rod when ro
 static const float D_S = 0.00591;   // Distance from rod pivot to plate
 static const float D_F = 0.650; // Distiance along rod from plate to starting position // Russ: 0.432
 static const float RECALC_INTERVAL_S = 15; // Time in seconds between recalculating
+static const float END_LENGTH_RESET = 6.500; // Length to travel before reseting.
 
 // STOP_TYPE
 // 0 for switch button type
@@ -70,14 +71,18 @@ void setup()
   //}
 
   goInitialPosition();
-  Astepper1.setCurrentPosition(0);
 }
+
+static unsigned long time_solar_start_ms = 0;  // Initial starting time.
+static float time_solar_last_s = -RECALC_INTERVAL_S; //Last solar time we recalculated steps 
+static float theta_initial = atan(D_F/R_I);
 
 
 void goInitialPosition() 
 {
   Serial.println("goInitialPosition");
   delay(250);
+  reset_started = false;
 
 #if STOP_TYPE == 0
   int buttonV = digitalRead(STOP_BUTTON_PIN);
@@ -112,11 +117,11 @@ void goInitialPosition()
   Serial.println("At initial position");
   delay(250);
   Serial.println("goInitialPosition end");
+  time_solar_start_ms = 0;
+  time_solar_last_s = -RECALC_INTERVAL_S;
+  Astepper1.setCurrentPosition(0);
 }
 
-static unsigned long time_solar_start_ms = 0;  // Initial starting time.
-static float time_solar_last_s = -RECALC_INTERVAL_S; //Last solar time we recalculated steps 
-static float theta_initial = atan(D_F/R_I);
 
 
 float tracker_calc_rod_length(float theta) {
@@ -141,6 +146,12 @@ float tracker_calc_steps(float time_solar_s) {
   return total_steps;
 }
 
+void check_end(float current_steps) {
+  if ((current_steps / (MICROSTEPS * STEPS_PER_ROTATION * THREADS_PER_INCH)) + d_initial >= END_LENGTH_RESET) {
+    goInitialPosition();
+  }
+}
+
 void loop()
 {
   float time_solar_s, spd, time_diff_s, steps_wanted;
@@ -158,5 +169,6 @@ void loop()
     Serial.println(spd);
   }
   Astepper1.runSpeed();
+  check_end(DIRECTION*Astepper1.currentPosition());
 }
 
