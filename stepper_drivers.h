@@ -1,6 +1,8 @@
 #ifndef __STEPPER_DRIVERS_H
 #define __STEPPER_DRIVERS_H
 
+boolean reset_started = false;
+
 #if STEPPER_DRIVER == 0
 
 #include <Adafruit_MotorShield.h>
@@ -36,7 +38,6 @@ void backwardstep1() {
 
 AccelStepper Astepper1(forwardstep1, backwardstep1); // use functions to step
 
-boolean reset_started = false;
 unsigned long reset_start_ms = 0.0;
 unsigned long reset_diff_ms = 0.0;
 unsigned long reset_count = 0;
@@ -62,7 +63,6 @@ inline void reset_done() {
 AccelStepper Astepper1(1, 9, 8);
 #define MICROSTEPS 8
 
-boolean reset_started = false;
 inline void reset_lp() {
   if (!reset_started) {
     reset_started = true;
@@ -105,7 +105,6 @@ void backwardstep1() {
 
 AccelStepper Astepper1(forwardstep1, backwardstep1); // use functions to step
 
-boolean reset_started = false;
 inline void reset_lp() {
     if (!reset_started) {
       Serial.println("Set reset speed.");
@@ -127,7 +126,6 @@ inline void reset_done() {
 AccelStepper Astepper1(1, 9, 8);
 #define MICROSTEPS 16
 
-boolean reset_started = false;
 int reset_lp_loop = 0;
 inline void reset_lp() {
   if (!reset_started) {
