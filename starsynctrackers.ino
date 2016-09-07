@@ -9,12 +9,13 @@
 #include <AccelStepper.h>
 #include <Wire.h>
 
+
 // STEPPER_DRIVER
 // 0 - Adafruit Motorshield V2 https://www.adafruit.com/products/1438
 // 1 - Easy Driver https://www.sparkfun.com/products/12779 (http://www.schmalzhaus.com/EasyDriver/index.html)
 // 2 - Adafruit Motorshield V1 https://www.adafruit.com/products/81
 // 3 - Big Easy Driver https://www.sparkfun.com/products/12859 (http://www.schmalzhaus.com/BigEasyDriver/)
-#define STEPPER_DRIVER 3
+#define STEPPER_DRIVER 0
 
 
 //Constants
@@ -22,54 +23,105 @@ static const float STEPS_PER_ROTATION = 200.0; // Steps per rotation, just steps
 static const float THREADS_PER_INCH = 20;  // Threads per inch or unit of measurement
 static const float R_I = 7.3975;     // Distance from plate pivot to rod when rod is perp from plate // Russ: 7.28
 static const float D_S = 0.00591;   // Distance from rod pivot to plate
-static const float D_F = 0.410; // Distiance along rod from plate to starting position // Russ: 0.432
+static const float D_F = 0.446; // Distiance along rod from plate to starting position // Russ: 0.432
 static const float RECALC_INTERVAL_S = 15; // Time in seconds between recalculating
+static const float END_LENGTH_RESET = 6.500; // Length to travel before reseting.
 
-static const int STOP_BUTTON_PIN = A4;      // The pin the stop push switch is on
+// STOP_TYPE
+// 0 for switch button type
+// 1 for analog proximity type
+#define STOP_TYPE 0
+static const int STOP_ANALOG_POWER_PIN = 10; //Pins stop switch gets power from, Digital pins only.
+static const int STOP_ANALOG_POWER_STOP_VALUE = 800; // 0 - 1023 (0 closer, 1023 farther)
+static const int STOP_BUTTON_PIN = A2;      // The pin the stop push switch is on
 static const int STOP_BUTTON_TYPE = 1;     // The type of switch 0 - Normally Closed; 1 - Normally Open
-static const float DIRECTION = -1.0; // 1 forward is forward; -1 + is forward is backward
+static const float DIRECTION = 1.0; // 1 forward is forward; -1 + is forward is backward
+
 
 #include "stepper_drivers.h"
+
+#if STOP_TYPE == 1
+void stop_button_analog_power(boolean powered) {
+  if (powered) {
+    digitalWrite(STOP_ANALOG_POWER_PIN, HIGH);
+  } else {
+    digitalWrite(STOP_ANALOG_POWER_PIN, LOW);    
+  }
+}
+#endif
+
 
 void setup()
 {  
   Serial.begin(9600);           // set up Serial library at 9600 bps
   Serial.println("Star Tracker v0.01");
-  
+
+#if STOP_TYPE == 0
   pinMode(STOP_BUTTON_PIN, INPUT_PULLUP);
+#else
+  pinMode(STOP_ANALOG_POWER_PIN, OUTPUT);
+#endif
+
 #if STEPPER_DRIVER == 0
   AFMS.begin();  // create with the default frequency 1.6KHz
 #endif
 
+  //while(true) {
+  //  reset_lp();
+  //}
+
   goInitialPosition();
-  Astepper1.setCurrentPosition(0);
 }
+
+static unsigned long time_solar_start_ms = 0;  // Initial starting time.
+static float time_solar_last_s = -RECALC_INTERVAL_S; //Last solar time we recalculated steps 
+static float theta_initial = atan(D_F/R_I);
 
 
 void goInitialPosition() 
 {
   Serial.println("goInitialPosition");
   delay(250);
+  reset_started = false;
+
+#if STOP_TYPE == 0
   int buttonV = digitalRead(STOP_BUTTON_PIN);
-  Serial.println(buttonV);
-  Serial.println(buttonV == STOP_BUTTON_TYPE);
   while (buttonV == STOP_BUTTON_TYPE)
+#else
+  int count = 0;
+  stop_button_analog_power(true);
+  delay(100);
+  int buttonV = analogRead(STOP_BUTTON_PIN);
+  //buttonV=1000;
+  while (buttonV > STOP_ANALOG_POWER_STOP_VALUE)
+#endif
   {
     reset_lp();
+
+#if STOP_TYPE == 0
     buttonV = digitalRead(STOP_BUTTON_PIN);
+#else
+    count++;
+    if(count > 20 || (count > 5 && buttonV < STOP_ANALOG_POWER_STOP_VALUE+50)) {
+      buttonV = analogRead(STOP_BUTTON_PIN); //TODO: Does analog read greatly slow down reset
+      count = 0;
+    }
+#endif
   }
-  Serial.println(buttonV);
   reset_done();
   Astepper1.setSpeed(0);
   Astepper1.runSpeed();
+#if STOP_TYPE == 1
+  stop_button_analog_power(false);
+#endif
   Serial.println("At initial position");
   delay(250);
   Serial.println("goInitialPosition end");
+  time_solar_start_ms = 0;
+  time_solar_last_s = -RECALC_INTERVAL_S;
+  Astepper1.setCurrentPosition(0);
 }
 
-static unsigned long time_solar_start_ms = 0;  // Initial starting time.
-static float time_solar_last_s = -RECALC_INTERVAL_S; //Last solar time we recalculated steps 
-static float theta_initial = atan(D_F/R_I);
 
 
 float tracker_calc_rod_length(float theta) {
@@ -94,6 +146,12 @@ float tracker_calc_steps(float time_solar_s) {
   return total_steps;
 }
 
+void check_end(float current_steps) {
+  if ((current_steps / (MICROSTEPS * STEPS_PER_ROTATION * THREADS_PER_INCH)) + d_initial >= END_LENGTH_RESET) {
+    goInitialPosition();
+  }
+}
+
 void loop()
 {
   float time_solar_s, spd, time_diff_s, steps_wanted;
@@ -111,5 +169,6 @@ void loop()
     Serial.println(spd);
   }
   Astepper1.runSpeed();
+  check_end(DIRECTION*Astepper1.currentPosition());
 }
 

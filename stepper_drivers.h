@@ -1,6 +1,8 @@
 #ifndef __STEPPER_DRIVERS_H
 #define __STEPPER_DRIVERS_H
 
+boolean reset_started = false;
+
 #if STEPPER_DRIVER == 0
 
 #include <Adafruit_MotorShield.h>
@@ -21,29 +23,32 @@ Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 1);
 // you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
 void forwardstep1() {
   if (DIRECTION > 0) {  
-    myStepper1->onestep(BACKWARD, MICROSTEP);
+    myStepper1->onestep(FORWARD, MICROSTEP);
   } else {
-    myStepper1->onestep(BACKWARD, DOUBLE);
+    myStepper1->onestep(FORWARD, DOUBLE);
   }
 }
 void backwardstep1() {  
   if (DIRECTION > 0) {  
-    myStepper1->onestep(FORWARD, DOUBLE);
+    myStepper1->onestep(BACKWARD, DOUBLE);
   } else {
-    myStepper1->onestep(FORWARD, MICROSTEP);
+    myStepper1->onestep(BACKWARD, MICROSTEP);
   }
 }
 
 AccelStepper Astepper1(forwardstep1, backwardstep1); // use functions to step
 
-boolean reset_started = false;
+unsigned long reset_start_ms = 0.0;
+unsigned long reset_diff_ms = 0.0;
+unsigned long reset_count = 0;
 inline void reset_lp() {
-    if (!reset_started) {
-      Serial.println("Set reset speed.");
-      Astepper1.setSpeed(DIRECTION*MICROSTEPS*450);
-      reset_started = true;
-    }
-    Astepper1.runSpeed();
+  int full_rate = -1;
+  if (full_rate > 0) {  
+    myStepper1->onestep(FORWARD, DOUBLE);
+  } else {
+    myStepper1->onestep(BACKWARD, DOUBLE);
+  }
+  delayMicroseconds(300);
 }
 
 inline void reset_done() {
@@ -58,7 +63,6 @@ inline void reset_done() {
 AccelStepper Astepper1(1, 9, 8);
 #define MICROSTEPS 8
 
-boolean reset_started = false;
 inline void reset_lp() {
   if (!reset_started) {
     reset_started = true;
@@ -86,26 +90,25 @@ AF_Stepper myStepper1(STEPS_PER_ROTATION, 1);
 // you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
 void forwardstep1() {
   if (DIRECTION > 0) {  
-    myStepper1.onestep(BACKWARD, MICROSTEP);
+    myStepper1.onestep(FORWARD, MICROSTEP);
   } else {
-    myStepper1.onestep(BACKWARD, DOUBLE);
+    myStepper1.onestep(FORWARD, DOUBLE);
   }
 }
 void backwardstep1() {  
   if (DIRECTION > 0) {  
-    myStepper1.onestep(FORWARD, DOUBLE);
+    myStepper1.onestep(BACKWARD, DOUBLE);
   } else {
-    myStepper1.onestep(FORWARD, MICROSTEP);
+    myStepper1.onestep(BACKWARD, MICROSTEP);
   }
 }
 
 AccelStepper Astepper1(forwardstep1, backwardstep1); // use functions to step
 
-boolean reset_started = false;
 inline void reset_lp() {
     if (!reset_started) {
       Serial.println("Set reset speed.");
-      Astepper1.setSpeed(DIRECTION*MICROSTEPS*450);
+      Astepper1.setSpeed(-DIRECTION*450);
       reset_started = true;
     }
     Astepper1.runSpeed();
@@ -123,7 +126,7 @@ inline void reset_done() {
 AccelStepper Astepper1(1, 9, 8);
 #define MICROSTEPS 16
 
-boolean reset_started = false;
+int reset_lp_loop = 0;
 inline void reset_lp() {
   if (!reset_started) {
     reset_started = true;
@@ -133,10 +136,14 @@ inline void reset_lp() {
       digitalWrite(8, HIGH);
     }
   }
-  digitalWrite(9, HIGH);
-  delayMicroseconds(75);
-  digitalWrite(9, LOW);
-  delayMicroseconds(75);
+  reset_lp_loop = 0;
+  while(reset_lp_loop < 1) {
+    digitalWrite(9, HIGH);
+    delayMicroseconds(75);
+    digitalWrite(9, LOW);
+    delayMicroseconds(75);
+    reset_lp_loop++;
+  }
 }
 
 inline void reset_done() {
