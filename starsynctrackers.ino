@@ -8,17 +8,19 @@
 
 #include <AccelStepper.h>
 #include <Wire.h>
+#include <EEPROM.h>
+#include <avr/pgmspace.h>
+#include <stdint.h>
+
+#include "starsynctrackers.h"
+#include "sst_console.h"
+#include "stepper_drivers.h"
+
+const char* sstversion = "v1.1.0";
 
 
-// STEPPER_DRIVER
-// 0 - Adafruit Motorshield V2 https://www.adafruit.com/products/1438
-// 1 - Easy Driver https://www.sparkfun.com/products/12779 (http://www.schmalzhaus.com/EasyDriver/index.html)
-// 2 - Adafruit Motorshield V1 https://www.adafruit.com/products/81
-// 3 - Big Easy Driver https://www.sparkfun.com/products/12859 (http://www.schmalzhaus.com/BigEasyDriver/)
-#define STEPPER_DRIVER 0
-
-
-//Constants
+// Default constant EEPROM values
+static const uint16_t EEPROM_MAGIC = 0x0101;
 static const float STEPS_PER_ROTATION = 200.0; // Steps per rotation, just steps not microsteps.
 static const float THREADS_PER_INCH = 20;  // Threads per inch or unit of measurement
 static const float R_I = 7.3975;     // Distance from plate pivot to rod when rod is perp from plate // Russ: 7.28
@@ -26,6 +28,7 @@ static const float D_S = 0.00591;   // Distance from rod pivot to plate
 static const float D_F = 0.446; // Distiance along rod from plate to starting position // Russ: 0.432
 static const float RECALC_INTERVAL_S = 15; // Time in seconds between recalculating
 static const float END_LENGTH_RESET = 6.500; // Length to travel before reseting.
+static const float DIRECTION = 1.0; // 1 forward is forward; -1 + is forward is backward
 
 // STOP_TYPE
 // 0 for switch button type
@@ -35,10 +38,24 @@ static const int STOP_ANALOG_POWER_PIN = 10; //Pins stop switch gets power from,
 static const int STOP_ANALOG_POWER_STOP_VALUE = 800; // 0 - 1023 (0 closer, 1023 farther)
 static const int STOP_BUTTON_PIN = A2;      // The pin the stop push switch is on
 static const int STOP_BUTTON_TYPE = 1;     // The type of switch 0 - Normally Closed; 1 - Normally Open
-static const float DIRECTION = 1.0; // 1 forward is forward; -1 + is forward is backward
 
+bool keep_running = true;
+float sst_rate = 1.0;
+int sst_reset_count = 0;
+SSTVARS sstvars;
+float time_diff_s = 0;
+float time_adjust_s = 0;
 
-#include "stepper_drivers.h"
+unsigned long time_solar_start_ms;  // Initial starting time.
+static float time_solar_last_s; //Last solar time we recalculated steps 
+static float theta_initial;
+static float d_initial;
+
+static void sst_eeprom_init(void);
+static float tracker_calc_steps(float time_solar_s);
+inline static float sst_rod_length_by_steps(float current_steps);
+void check_end(float current_steps);
+
 
 #if STOP_TYPE == 1
 void stop_button_analog_power(boolean powered) {
@@ -50,11 +67,47 @@ void stop_button_analog_power(boolean powered) {
 }
 #endif
 
+/**
+ * If the EEPROM has not be been initialized, it will init it. If it has been set it sets 
+ * struct sstvars with the contents of the EEPROM.
+ */
+static void sst_eeprom_init() {
+  //Since arduino doesn't load eeprom set with EEMEM, do our own init.
+  uint16_t magic;
+  EEPROM.get(0, magic);
+  if (magic != EEPROM_MAGIC) {
+    //Initial EEPROM
+    EEPROM.put(0, magic);
+    sstvars.stepsPerRotation = STEPS_PER_ROTATION;
+    sstvars.threadsPerInch = THREADS_PER_INCH;
+    sstvars.r_i = R_I;
+    sstvars.d_s = D_S;
+    sstvars.d_f = D_F;
+    sstvars.recalcIntervalS = RECALC_INTERVAL_S;
+    sstvars.endLengthReset = END_LENGTH_RESET;
+    sstvars.dir = DIRECTION;
+    sst_save_sstvars();
+  } else {
+    //Read in from EEPROM
+    EEPROM.get(sizeof(uint16_t), sstvars);
+  }
+}
 
+// See starsynctrackers.h
+void sst_save_sstvars() {
+    EEPROM.put(sizeof(uint16_t), sstvars); 
+}
+
+/**
+ * When first powered up. sets up serial, sstvars, stepper, console, resets tracker.
+ */
 void setup()
 {  
   Serial.begin(9600);           // set up Serial library at 9600 bps
-  Serial.println("Star Tracker v0.01");
+  Serial.print(F("Star Tracker "));
+  Serial.println(sstversion);
+
+  sst_eeprom_init();
 
 #if STOP_TYPE == 0
   pinMode(STOP_BUTTON_PIN, INPUT_PULLUP);
@@ -62,26 +115,22 @@ void setup()
   pinMode(STOP_ANALOG_POWER_PIN, OUTPUT);
 #endif
 
-#if STEPPER_DRIVER == 0
-  AFMS.begin();  // create with the default frequency 1.6KHz
-#endif
+  stepper_init();
 
   //while(true) {
-  //  reset_lp();
+  //  stepper_reset_lp();
   //}
+  sst_console_init();
 
-  goInitialPosition();
+  sst_reset();
 }
 
-static unsigned long time_solar_start_ms = 0;  // Initial starting time.
-static float time_solar_last_s = -RECALC_INTERVAL_S; //Last solar time we recalculated steps 
-static float theta_initial = atan(D_F/R_I);
-
-
-void goInitialPosition() 
+// See starsynctrackers.h
+void sst_reset() 
 {
-  Serial.println("goInitialPosition");
+  Serial.println(F("sst_reset"));
   delay(250);
+  sst_reset_count++;
   reset_started = false;
 
 #if STOP_TYPE == 0
@@ -96,7 +145,7 @@ void goInitialPosition()
   while (buttonV > STOP_ANALOG_POWER_STOP_VALUE)
 #endif
   {
-    reset_lp();
+    stepper_reset_lp();
 
 #if STOP_TYPE == 0
     buttonV = digitalRead(STOP_BUTTON_PIN);
@@ -108,67 +157,120 @@ void goInitialPosition()
     }
 #endif
   }
-  reset_done();
+  stepper_reset_done();
   Astepper1.setSpeed(0);
   Astepper1.runSpeed();
 #if STOP_TYPE == 1
   stop_button_analog_power(false);
 #endif
-  Serial.println("At initial position");
+  Serial.println(F("At initial position"));
   delay(250);
-  Serial.println("goInitialPosition end");
+  Serial.println(F("sst_reset end"));
   time_solar_start_ms = 0;
-  time_solar_last_s = -RECALC_INTERVAL_S;
+  time_solar_last_s = -sstvars.recalcIntervalS;
+  theta_initial = atan(sstvars.d_f/sstvars.r_i);
+  d_initial = sst_rod_length_by_angle(theta_initial);
   Astepper1.setCurrentPosition(0);
 }
 
-
-
-float tracker_calc_rod_length(float theta) {
+// See starsynctrackers.h
+float sst_rod_length_by_angle(float theta) {
   float psi, r, d;
   
   psi = 0.5*(PI - theta);
-  r = R_I - D_S * tan(PI / 2.0 - psi); //Calculated adjusted length from pivot to center of rod
+  r = sstvars.r_i - sstvars.d_s * tan(PI / 2.0 - psi); //Calculated adjusted length from pivot to center of rod
   d = r * sin(theta) / sin(psi); //Calculates desired length of rod between plates.
   return d;
 }
 
-static float d_initial = tracker_calc_rod_length(theta_initial);
-
-
-float tracker_calc_steps(float time_solar_s) {
-  float time_sidereal_s, theta, d, total_steps;
+// See starsynctrackers.h
+float sst_theta(float time_solar_s) {
+  float time_sidereal_s;
   
-  time_sidereal_s = time_solar_s * 1.0027379;  //Calculates sidereal time from solar time.
-  theta = theta_initial + 0.25 * PI * time_sidereal_s / 10800.0; //Calculates desired plate pivot angle
-  d = tracker_calc_rod_length(theta);
-  total_steps = MICROSTEPS * (d-d_initial) * STEPS_PER_ROTATION * THREADS_PER_INCH; //Calculates total steps we should be at, at given time.
+  time_sidereal_s = sst_rate*time_solar_s * 1.0027379;  //Calculates sidereal time from solar time.
+  return (theta_initial + 0.25 * PI * time_sidereal_s / 10800.0); //Calculates desired plate pivot angle
+}
+
+/**
+ * Steps the tracker should be set to if ran for a time.
+ * @param time_solar_s Time in seconds of run time.
+ * @return Steps the tracker should be at, at time.
+ */
+static float tracker_calc_steps(float time_solar_s) {
+  float theta, d, total_steps;
+  
+  theta = sst_theta(time_solar_s);
+  d = sst_rod_length_by_angle(theta);
+  total_steps = MICROSTEPS * (d-d_initial) * sstvars.stepsPerRotation * sstvars.threadsPerInch; //Calculates total steps we should be at, at given time.
   return total_steps;
 }
 
-void check_end(float current_steps) {
-  if ((current_steps / (MICROSTEPS * STEPS_PER_ROTATION * THREADS_PER_INCH)) + d_initial >= END_LENGTH_RESET) {
-    goInitialPosition();
+ // See starsynctrackers.h
+float steps_to_time_solar(float current_steps) {
+  float d;
+  d = sst_rod_length_by_steps(current_steps);
+  return rod_length_to_solar(d);
+}
+
+// See starsynctrackers.h
+float rod_length_to_solar(float d) {
+  float theta, time_sidereal_s;
+  //Law of cosines
+  //TODO: Is this calculation good
+  theta = acos(d*d/(-2.0*sstvars.r_i*sstvars.r_i));
+  time_sidereal_s = (theta - theta_initial)*10800.0/(0.25 * PI);
+  return (time_sidereal_s/(1.0027379*sst_rate));
+}
+
+/**
+ * Gives you rod length based on steps tracker has gone through.
+ * @param current_steps steps.
+ * @return rod length.
+ */
+static inline float sst_rod_length_by_steps(float current_steps) {
+  return ((current_steps / (MICROSTEPS * sstvars.stepsPerRotation * sstvars.threadsPerInch)) + d_initial);
+}
+
+/**
+ * Given current steps if at endLengthReset will run tracker reset.
+ * @param current_steps steps
+ */
+static void check_end(float current_steps) {
+  if (sst_rod_length_by_steps(current_steps) >= sstvars.endLengthReset) {
+    sst_reset();
   }
 }
 
+/**
+ * Program loop.
+ */
 void loop()
 {
-  float time_solar_s, spd, time_diff_s, steps_wanted;
-  
+  float time_solar_s, spd, steps_wanted;
+
   if (time_solar_start_ms == 0) {
     time_solar_start_ms = millis();
   }
-  time_solar_s = ((float)(millis() - time_solar_start_ms))/1000.0;
+  time_solar_s = ((float)(millis() - time_solar_start_ms))/1000.0 + time_adjust_s;
   time_diff_s = time_solar_s - time_solar_last_s;
-  if (time_diff_s >= RECALC_INTERVAL_S) {
-    time_solar_last_s = time_solar_s;
-    steps_wanted = tracker_calc_steps(time_solar_s + RECALC_INTERVAL_S/2.0);
-    spd = (steps_wanted - DIRECTION*Astepper1.currentPosition())/(RECALC_INTERVAL_S/2);
-    Astepper1.setSpeed(DIRECTION*spd);
-    Serial.println(spd);
+
+  if (!keep_running) {
+    delay(10);
+  } else {  
+    if (time_diff_s >= RECALC_INTERVAL_S) {
+      time_solar_last_s = time_solar_s;
+      steps_wanted = tracker_calc_steps(time_solar_s + RECALC_INTERVAL_S/2.0);
+      spd = (steps_wanted - sstvars.dir*Astepper1.currentPosition())/(RECALC_INTERVAL_S/2);
+      // Max speed so we can rewind and ff with time.
+      if(fabs(spd) > 300) {
+        spd = (spd/fabs(spd)) * 300;
+      }
+      Astepper1.setSpeed(sstvars.dir*spd);
+      Serial.println(spd);
+    }
+    Astepper1.runSpeed();
+    check_end(sstvars.dir*Astepper1.currentPosition());
+    sst_console_read_serial();
   }
-  Astepper1.runSpeed();
-  check_end(DIRECTION*Astepper1.currentPosition());
 }
 

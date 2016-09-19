@@ -1,157 +1,43 @@
 #ifndef __STEPPER_DRIVERS_H
 #define __STEPPER_DRIVERS_H
 
-boolean reset_started = false;
+#include <AccelStepper.h>
+
+//
+// Need AccelStepper fork with AFMotor support with library 
+//   https://github.com/adafruit/AccelStepper
+// If using Adafruit v2 Motorshield requires the Adafruit_Motorshield v2 library 
+//   https://github.com/adafruit/Adafruit_Motor_Shield_V2_Library
+// if using adafruit motor shield v1 then you need v1 library
+//' https://github.com/adafruit/Adafruit-Motor-Shield-library
+
+// STEPPER_DRIVER
+// 0 - Adafruit Motorshield V2 https://www.adafruit.com/products/1438
+// 1 - Easy Driver https://www.sparkfun.com/products/12779 (http://www.schmalzhaus.com/EasyDriver/index.html)
+// 2 - Adafruit Motorshield V1 https://www.adafruit.com/products/81
+// 3 - Big Easy Driver https://www.sparkfun.com/products/12859 (http://www.schmalzhaus.com/BigEasyDriver/)
+#define STEPPER_DRIVER 3
 
 #if STEPPER_DRIVER == 0
-
-#include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_PWMServoDriver.h"
-
-// Create the motor shield object with the default I2C address
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
-// Or, create it with a different I2C address (say for stacking)
-// Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x61); 
-
-// Connect a stepper motor with 200 steps per revolution (1.8 degree)
-// to motor port #2 (M3 and M4)
-//Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 2);
-
-//motor port #1 M1 and M2
-Adafruit_StepperMotor *myStepper1 = AFMS.getStepper(STEPS_PER_ROTATION, 1);
-
-// you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
-void forwardstep1() {
-  if (DIRECTION > 0) {  
-    myStepper1->onestep(FORWARD, MICROSTEP);
-  } else {
-    myStepper1->onestep(FORWARD, DOUBLE);
-  }
-}
-void backwardstep1() {  
-  if (DIRECTION > 0) {  
-    myStepper1->onestep(BACKWARD, DOUBLE);
-  } else {
-    myStepper1->onestep(BACKWARD, MICROSTEP);
-  }
-}
-
-AccelStepper Astepper1(forwardstep1, backwardstep1); // use functions to step
-
-unsigned long reset_start_ms = 0.0;
-unsigned long reset_diff_ms = 0.0;
-unsigned long reset_count = 0;
-inline void reset_lp() {
-  int full_rate = -1;
-  if (full_rate > 0) {  
-    myStepper1->onestep(FORWARD, DOUBLE);
-  } else {
-    myStepper1->onestep(BACKWARD, DOUBLE);
-  }
-  delayMicroseconds(300);
-}
-
-inline void reset_done() {
-  Astepper1.setSpeed(0);
-  Astepper1.runSpeed();
-}
-
+  #include <Adafruit_MotorShield.h>
+  #include "utility/Adafruit_PWMServoDriver.h"
 #endif
 
 #if STEPPER_DRIVER == 1
-
-AccelStepper Astepper1(1, 9, 8);
-#define MICROSTEPS 8
-
-inline void reset_lp() {
-  if (!reset_started) {
-    reset_started = true;
-    if (DIRECTION > 0) {
-      digitalWrite(8, HIGH);
-    }
-  }
-  digitalWrite(9, HIGH);
-  delayMicroseconds(150);
-  digitalWrite(9, LOW);
-  delayMicroseconds(150);
-}
-
-inline void reset_done() {
-  digitalWrite(8, LOW);
-}
-
+  #define MICROSTEPS 8
 #endif
 
-
 #if STEPPER_DRIVER == 2
-
-#include <AFMotor.h>
-AF_Stepper myStepper1(STEPS_PER_ROTATION, 1);
-// you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
-void forwardstep1() {
-  if (DIRECTION > 0) {  
-    myStepper1.onestep(FORWARD, MICROSTEP);
-  } else {
-    myStepper1.onestep(FORWARD, DOUBLE);
-  }
-}
-void backwardstep1() {  
-  if (DIRECTION > 0) {  
-    myStepper1.onestep(BACKWARD, DOUBLE);
-  } else {
-    myStepper1.onestep(BACKWARD, MICROSTEP);
-  }
-}
-
-AccelStepper Astepper1(forwardstep1, backwardstep1); // use functions to step
-
-inline void reset_lp() {
-    if (!reset_started) {
-      Serial.println("Set reset speed.");
-      Astepper1.setSpeed(-DIRECTION*450);
-      reset_started = true;
-    }
-    Astepper1.runSpeed();
-}
-
-inline void reset_done() {
-  Astepper1.setSpeed(0);
-  Astepper1.runSpeed();
-}
-
+  #include <AFMotor.h>
 #endif
 
 #if STEPPER_DRIVER == 3
-
-AccelStepper Astepper1(1, 9, 8);
-#define MICROSTEPS 16
-
-int reset_lp_loop = 0;
-inline void reset_lp() {
-  if (!reset_started) {
-    reset_started = true;
-    if (DIRECTION > 0) {
-      digitalWrite(8, LOW);
-    } else {
-      digitalWrite(8, HIGH);
-    }
-  }
-  reset_lp_loop = 0;
-  while(reset_lp_loop < 1) {
-    digitalWrite(9, HIGH);
-    delayMicroseconds(75);
-    digitalWrite(9, LOW);
-    delayMicroseconds(75);
-    reset_lp_loop++;
-  }
-}
-
-inline void reset_done() {
-  digitalWrite(8, LOW);
-}
-
+  #define MICROSTEPS 16
 #endif
 
-
+extern AccelStepper Astepper1;
+void stepper_init(void);
+void stepper_reset_lp(void);
+void stepper_reset_done(void);
 
 #endif
