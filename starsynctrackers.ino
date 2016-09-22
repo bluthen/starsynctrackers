@@ -78,7 +78,7 @@ static void sst_eeprom_init() {
   EEPROM.get(0, magic);
   if (magic != EEPROM_MAGIC) {
     //Initial EEPROM
-    EEPROM.put(0, magic);
+    EEPROM.put(0, EEPROM_MAGIC);
     sstvars.stepsPerRotation = STEPS_PER_ROTATION;
     sstvars.threadsPerInch = THREADS_PER_INCH;
     sstvars.r_i = R_I;
@@ -105,7 +105,7 @@ void sst_save_sstvars() {
 void setup()
 {  
   Serial.begin(115200);           // set up Serial library at 9600 bps
-  Serial.print(F("Star Tracker "));
+  Serial.print(F("StarSync Tracker "));
   Serial.println(sstversion);
 
   sst_eeprom_init();
