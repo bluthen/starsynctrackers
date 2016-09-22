@@ -17,9 +17,9 @@ void sst_console_stop() {
   keep_running = false;
   Serial.println(F("Tracking stopped"));
   if(sst_debug) {
-    Serial.println(Astepper1.currentPosition());
+    Serial.println(sstvars.dir*Astepper1.currentPosition());
     Serial.println(((float)(millis() - time_solar_start_ms))/1000.0);
-    Serial.println(steps_to_time_solar(Astepper1.currentPosition()));
+    Serial.println(steps_to_time_solar(sstvars.dir*Astepper1.currentPosition()));
   }
   Serial.print(F("$ "));
 }
@@ -27,7 +27,7 @@ void sst_console_stop() {
 void sst_console_continue() {
   Serial.println(F("Tracking continuing"));
   keep_running = true;
-  time_adjust_s = steps_to_time_solar(Astepper1.currentPosition()) - ((float)(millis() - time_solar_start_ms))/1000.0;
+  time_adjust_s = steps_to_time_solar(sstvars.dir*Astepper1.currentPosition()) - ((float)(millis() - time_solar_start_ms))/1000.0;
   time_solar_last_s = -9999;
   if (sst_debug) {
     Serial.println(time_adjust_s);
@@ -87,7 +87,7 @@ void sst_console_set_rate() {
   } else {
     rate = atof(arg);
     sst_rate = rate;
-    time_adjust_s = steps_to_time_solar(Astepper1.currentPosition()) - ((float)(millis() - time_solar_start_ms))/1000.0;
+    time_adjust_s = steps_to_time_solar(sstvars.dir*Astepper1.currentPosition()) - ((float)(millis() - time_solar_start_ms))/1000.0;
     time_solar_last_s = -9999;
     if(sst_debug) {
       Serial.println(time_adjust_s);
@@ -206,14 +206,14 @@ void sst_console_status() {
   Serial.print(F(" Resets: "));
   Serial.println(sst_reset_count);
   Serial.print(F(" Steps: "));
-  Serial.println(Astepper1.currentPosition());
+  Serial.println(sstvars.dir*Astepper1.currentPosition());
   Serial.print(F(" Time: "));
   t= (float)(millis() - time_solar_start_ms)/1000.0 + time_adjust_s;
   Serial.print(t);
   Serial.print(" RT: ");
   Serial.println(millis()/1000.0);
   theta = sst_theta(t);
-  l = sst_rod_length_by_steps(Astepper1.currentPosition());
+  l = sst_rod_length_by_steps(sstvars.dir*Astepper1.currentPosition());
   Serial.print(F(" Length: "));
   Serial.println(l, 5);
   Serial.print(F(" Angle: "));

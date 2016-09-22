@@ -260,8 +260,11 @@ float sst_rod_length_by_steps(float current_steps) {
  * @param current_steps steps
  */
 static void check_end(float current_steps) {
-  if (sst_rod_length_by_steps(current_steps) >= sstvars.endLengthReset) {
+  float d = sst_rod_length_by_steps(current_steps);
+  if (d >= sstvars.endLengthReset) {
     sst_reset();
+  } else if(d <= d_initial) {
+    keep_running=false;
   }
 }
 
@@ -292,7 +295,7 @@ void loop()
       if(sst_debug) {
         Serial.print(tracker_calc_steps(time_solar_s));
         Serial.print(",");
-        Serial.println(Astepper1.currentPosition());
+        Serial.println(sstvars.dir*Astepper1.currentPosition());
       }
       steps_wanted = tracker_calc_steps(time_solar_s + RECALC_INTERVAL_S);
       spd = (steps_wanted - sstvars.dir*Astepper1.currentPosition())/(RECALC_INTERVAL_S);
