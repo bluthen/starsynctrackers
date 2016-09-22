@@ -123,6 +123,7 @@ void sst_console_set_var() {
   char* argVarName;
   char* argValue;
   double value;
+  uint8_t ivalue;
   bool updated;
 
   argVarName = sSSTCmd.next();
@@ -137,6 +138,7 @@ void sst_console_set_var() {
   }
   //TODO: Convert argValue based on argVarName? or always double atof?
   value = atof(argValue);
+  ivalue = atoi(argValue);
 
   updated = true;
   if(strcmp_P(argVarName, PSTR("stepsPerRotation")) == 0) {
@@ -153,6 +155,8 @@ void sst_console_set_var() {
     sstvars.recalcIntervalS = value;
   } else if(strcmp_P(argVarName, PSTR("endLengthReset")) == 0) {
     sstvars.endLengthReset = value;
+  } else if(strcmp_P(argVarName, PSTR("resetAtEnd")) == 0) {
+    sstvars.resetAtEnd = ivalue;
   } else if(strcmp_P(argVarName, PSTR("dir")) == 0) {
     sstvars.dir = value;
   } else {
@@ -191,6 +195,8 @@ void sst_console_status() {
   Serial.println(sstvars.recalcIntervalS);
   Serial.print(F(" endLengthReset="));
   Serial.println(sstvars.endLengthReset);
+  Serial.print(F(" resetAtEnd="));
+  Serial.println(sstvars.resetAtEnd);
   Serial.print(F(" dir="));
   Serial.println(sstvars.dir);
   Serial.println(F("Runtime Status:"));

@@ -20,7 +20,7 @@ const char* sstversion = "v1.1.0";
 
 
 // Default constant EEPROM values
-static const uint16_t EEPROM_MAGIC = 0x0101;
+static const uint16_t EEPROM_MAGIC = 0x0102;
 static const float STEPS_PER_ROTATION = 200.0; // Steps per rotation, just steps not microsteps.
 static const float THREADS_PER_INCH = 20;  // Threads per inch or unit of measurement
 static const float R_I = 7.3975;     // Distance from plate pivot to rod when rod is perp from plate // Russ: 7.28
@@ -28,6 +28,7 @@ static const float D_S = 0.00591;   // Distance from rod pivot to plate
 static const float D_F = 0.446; // Distiance along rod from plate to starting position // Russ: 0.432
 static const float RECALC_INTERVAL_S = 15; // Time in seconds between recalculating
 static const float END_LENGTH_RESET = 6.500; // Length to travel before reseting.
+static const uint8_t RESET_AT_END = 0;
 static const float DIRECTION = 1.0; // 1 forward is forward; -1 + is forward is backward
 
 // STOP_TYPE
@@ -55,7 +56,7 @@ static float d_initial;
 
 static void sst_eeprom_init(void);
 static float tracker_calc_steps(float time_solar_s);
-void check_end(float current_steps);
+static void check_end(float current_steps);
 
 
 #if STOP_TYPE == 1
@@ -86,6 +87,7 @@ static void sst_eeprom_init() {
     sstvars.d_f = D_F;
     sstvars.recalcIntervalS = RECALC_INTERVAL_S;
     sstvars.endLengthReset = END_LENGTH_RESET;
+    sstvars.resetAtEnd = RESET_AT_END;
     sstvars.dir = DIRECTION;
     sst_save_sstvars();
   } else {
@@ -262,7 +264,11 @@ float sst_rod_length_by_steps(float current_steps) {
 static void check_end(float current_steps) {
   float d = sst_rod_length_by_steps(current_steps);
   if (d >= sstvars.endLengthReset) {
-    sst_reset();
+    if (sstvars.resetAtEnd) {
+      sst_reset();
+    } else {
+      keep_running = false;
+    }
   } else if(d <= d_initial) {
     keep_running=false;
   }
