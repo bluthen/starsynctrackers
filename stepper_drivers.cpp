@@ -142,6 +142,10 @@ void stepper_reset_done() {
   digitalWrite(8, LOW);
 }
 
+void fast(long counts) {
+  
+}
+
 #endif
 
 

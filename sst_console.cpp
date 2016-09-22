@@ -16,6 +16,11 @@ void sst_console_stop() {
   //TODO: Set it to stop
   keep_running = false;
   Serial.println(F("Tracking stopped"));
+  if(sst_debug) {
+    Serial.println(Astepper1.currentPosition());
+    Serial.println(((float)(millis() - time_solar_start_ms))/1000.0);
+    Serial.println(steps_to_time_solar(Astepper1.currentPosition()));
+  }
   Serial.print(F("$ "));
 }
 
@@ -23,6 +28,10 @@ void sst_console_continue() {
   Serial.println(F("Tracking continuing"));
   keep_running = true;
   time_adjust_s = steps_to_time_solar(Astepper1.currentPosition()) - ((float)(millis() - time_solar_start_ms))/1000.0;
+  time_solar_last_s = -9999;
+  if (sst_debug) {
+    Serial.println(time_adjust_s);
+  }
   Serial.print(F("$ "));
 }
 
@@ -53,7 +62,7 @@ void sst_console_mv() {
   }
 
   cl = l;
-  if (strcmp(argUnit, "mm")) {
+  if (strcmp(argUnit, "mm") == 0) {
     // Covert mm to inches
     cl = l * 0.0393701;
   }
@@ -61,9 +70,10 @@ void sst_console_mv() {
   Serial.print(F("Moving to "));
   Serial.print(l);
   Serial.print(" ");
-  Serial.print(argUnit);
+  Serial.println(argUnit);
 
   time_adjust_s = rod_length_to_solar(cl) - ((float)(millis() - time_solar_start_ms))/1000.0;
+  time_solar_last_s = -9999;
   
   Serial.print("$ ");
 }
@@ -78,6 +88,10 @@ void sst_console_set_rate() {
     rate = atof(arg);
     sst_rate = rate;
     time_adjust_s = steps_to_time_solar(Astepper1.currentPosition()) - ((float)(millis() - time_solar_start_ms))/1000.0;
+    time_solar_last_s = -9999;
+    if(sst_debug) {
+      Serial.println(time_adjust_s);
+    }
 
     Serial.print(F("Rate set to "));
     Serial.println(rate); 
@@ -93,10 +107,10 @@ void sst_console_set_debug() {
   if (arg != NULL) {
     iarg = atoi(arg);
     if (iarg == 1) {
-      //TODO: Set debugging on
+      sst_debug = true;
       Serial.println(F("Debug ENABLED"));
     } else {
-      // TODO: Set debugging off
+      sst_debug = false;
       Serial.println(F("Debug DISABLED"));
     }
   } else {
@@ -158,9 +172,10 @@ void sst_console_set_var() {
 }
 
 void sst_console_status() {
-  float theta;
+  float theta, t;
   float l;
 
+  Serial.println();
   Serial.println(F("EEPROM Values:"));
   Serial.print(F(" stepsPerRotation="));
   Serial.println(sstvars.stepsPerRotation);
@@ -179,21 +194,31 @@ void sst_console_status() {
   Serial.print(F(" dir="));
   Serial.println(sstvars.dir);
   Serial.println(F("Runtime Status:"));
-  Serial.print(F("Version: "));
+  if (sst_debug) {
+    Serial.println(F(" Debug: Enabled"));
+  } else {
+    Serial.println(F(" Debug: Disabled"));    
+  }
+  Serial.print(F(" Version: "));
   Serial.println(sstversion);
-  Serial.print(F("Resets: "));
+  Serial.print(F(" Rate: "));
+  Serial.println(sst_rate);
+  Serial.print(F(" Resets: "));
   Serial.println(sst_reset_count);
-  Serial.print(F("Time: "));
-  Serial.print(time_diff_s);
+  Serial.print(F(" Steps: "));
+  Serial.println(Astepper1.currentPosition());
+  Serial.print(F(" Time: "));
+  t= (float)(millis() - time_solar_start_ms)/1000.0 + time_adjust_s;
+  Serial.print(t);
   Serial.print(" RT: ");
   Serial.println(millis()/1000.0);
-  theta = sst_theta(time_diff_s);
-  l = sst_rod_length_by_angle(theta);
-  Serial.print(F("Length: "));
-  Serial.println(l);
-  Serial.print(F("Angle: "));
-  Serial.println(theta);
-  Serial.print(F("Speed: "));
+  theta = sst_theta(t);
+  l = sst_rod_length_by_steps(Astepper1.currentPosition());
+  Serial.print(F(" Length: "));
+  Serial.println(l, 5);
+  Serial.print(F(" Angle: "));
+  Serial.println(theta, 5);
+  Serial.print(F(" Speed: "));
   Serial.println(Astepper1.speed());
   
   Serial.print(F("$ "));

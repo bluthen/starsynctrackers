@@ -28,12 +28,16 @@ extern const char* sstversion;
  */
 extern SSTVARS sstvars;
 
+extern boolean sst_debug;
+
 extern float time_diff_s;
 extern int sst_reset_count;
 extern boolean reset_started;
 extern float sst_rate;
 extern unsigned long time_solar_start_ms;
 extern float time_adjust_s;
+extern float time_solar_last_s; //Last solar time we recalculated steps 
+
 
 /**
  * Runs when true.
@@ -68,6 +72,14 @@ float steps_to_time_solar(float current_steps);
  * @return time in seconds.
  */
 float rod_length_to_solar(float d);
+
+/**
+ * Gives you rod length based on steps tracker has gone through.
+ * @param current_steps steps.
+ * @return rod length.
+ */
+float sst_rod_length_by_steps(float current_steps);
+
 
 /**
  * Saves eeprom values with the contents of sstvars.

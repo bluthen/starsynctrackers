@@ -23,7 +23,7 @@
  */
 #ifndef SerialCommand_h
 #define SerialCommand_h
-
+//#define SERIALCOMMAND_DEBUG
 #if defined(WIRING) && WIRING >= 100
   #include <Wiring.h>
 #elif defined(ARDUINO) && ARDUINO >= 100

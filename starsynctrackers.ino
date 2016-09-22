@@ -33,7 +33,7 @@ static const float DIRECTION = 1.0; // 1 forward is forward; -1 + is forward is 
 // STOP_TYPE
 // 0 for switch button type
 // 1 for analog proximity type
-#define STOP_TYPE 0
+#define STOP_TYPE 1
 static const int STOP_ANALOG_POWER_PIN = 10; //Pins stop switch gets power from, Digital pins only.
 static const int STOP_ANALOG_POWER_STOP_VALUE = 800; // 0 - 1023 (0 closer, 1023 farther)
 static const int STOP_BUTTON_PIN = A2;      // The pin the stop push switch is on
@@ -45,15 +45,16 @@ int sst_reset_count = 0;
 SSTVARS sstvars;
 float time_diff_s = 0;
 float time_adjust_s = 0;
+float time_solar_last_s; //Last solar time we recalculated steps 
+
+boolean sst_debug = false;
 
 unsigned long time_solar_start_ms;  // Initial starting time.
-static float time_solar_last_s; //Last solar time we recalculated steps 
 static float theta_initial;
 static float d_initial;
 
 static void sst_eeprom_init(void);
 static float tracker_calc_steps(float time_solar_s);
-inline static float sst_rod_length_by_steps(float current_steps);
 void check_end(float current_steps);
 
 
@@ -103,7 +104,7 @@ void sst_save_sstvars() {
  */
 void setup()
 {  
-  Serial.begin(9600);           // set up Serial library at 9600 bps
+  Serial.begin(115200);           // set up Serial library at 9600 bps
   Serial.print(F("Star Tracker "));
   Serial.println(sstversion);
 
@@ -128,7 +129,9 @@ void setup()
 // See starsynctrackers.h
 void sst_reset() 
 {
-  Serial.println(F("sst_reset"));
+  if (sst_debug) {
+    Serial.println(F("sst_reset"));
+  }
   delay(250);
   sst_reset_count++;
   reset_started = false;
@@ -163,14 +166,21 @@ void sst_reset()
 #if STOP_TYPE == 1
   stop_button_analog_power(false);
 #endif
-  Serial.println(F("At initial position"));
+  if (sst_debug) {
+    Serial.println(F("At initial position"));
+  }
   delay(250);
-  Serial.println(F("sst_reset end"));
   time_solar_start_ms = 0;
   time_solar_last_s = -sstvars.recalcIntervalS;
   theta_initial = atan(sstvars.d_f/sstvars.r_i);
   d_initial = sst_rod_length_by_angle(theta_initial);
+  time_adjust_s = 0;
   Astepper1.setCurrentPosition(0);
+  // Max speed a eeprom value
+  Astepper1.setMaxSpeed(10000);
+  if (sst_debug) {
+    Serial.println(F("sst_reset end"));
+  }
 }
 
 // See starsynctrackers.h
@@ -200,6 +210,10 @@ static float tracker_calc_steps(float time_solar_s) {
   float theta, d, total_steps;
   
   theta = sst_theta(time_solar_s);
+  if(sst_debug) {
+    Serial.print("theta=");
+    Serial.println(theta,5);
+  }
   d = sst_rod_length_by_angle(theta);
   total_steps = MICROSTEPS * (d-d_initial) * sstvars.stepsPerRotation * sstvars.threadsPerInch; //Calculates total steps we should be at, at given time.
   return total_steps;
@@ -207,27 +221,37 @@ static float tracker_calc_steps(float time_solar_s) {
 
  // See starsynctrackers.h
 float steps_to_time_solar(float current_steps) {
-  float d;
-  d = sst_rod_length_by_steps(current_steps);
-  return rod_length_to_solar(d);
+  //Secant method
+  //http://www.codewithc.com/c-program-for-secant-method/
+  float a=millis()/1000.0;
+  float b=0;
+  float c= 0;
+  float fa = 0;
+  float fb = 0;
+  do
+  {
+    fb = tracker_calc_steps(b) - current_steps;
+    fa = tracker_calc_steps(a) - current_steps;
+    c=(a*fb - b*fa)/(fb-fa);
+    a = b;
+    b = c;
+  } while(fabs(tracker_calc_steps(c) - current_steps) > 1);
+  if (sst_debug) {
+    Serial.print("c =");
+    Serial.println(c);
+  }
+  return c;
 }
 
 // See starsynctrackers.h
 float rod_length_to_solar(float d) {
-  float theta, time_sidereal_s;
-  //Law of cosines
-  //TODO: Is this calculation good
-  theta = acos(d*d/(-2.0*sstvars.r_i*sstvars.r_i));
-  time_sidereal_s = (theta - theta_initial)*10800.0/(0.25 * PI);
-  return (time_sidereal_s/(1.0027379*sst_rate));
+  //Steps needed to get to d
+  float steps = (d-d_initial)*MICROSTEPS*sstvars.stepsPerRotation*sstvars.threadsPerInch;
+  return steps_to_time_solar(steps);
 }
 
-/**
- * Gives you rod length based on steps tracker has gone through.
- * @param current_steps steps.
- * @return rod length.
- */
-static inline float sst_rod_length_by_steps(float current_steps) {
+// See starsynctrackers.h
+float sst_rod_length_by_steps(float current_steps) {
   return ((current_steps / (MICROSTEPS * sstvars.stepsPerRotation * sstvars.threadsPerInch)) + d_initial);
 }
 
@@ -241,17 +265,23 @@ static void check_end(float current_steps) {
   }
 }
 
+static int loop_count = 0;
 /**
  * Program loop.
  */
 void loop()
 {
   float time_solar_s, spd, steps_wanted;
+  loop_count++;
 
   if (time_solar_start_ms == 0) {
     time_solar_start_ms = millis();
   }
   time_solar_s = ((float)(millis() - time_solar_start_ms))/1000.0 + time_adjust_s;
+  //if(loop_count > 10000) {
+    //Serial.println(time_solar_s, 8);
+   // loop_count = 0;
+  //}
   time_diff_s = time_solar_s - time_solar_last_s;
 
   if (!keep_running) {
@@ -259,18 +289,25 @@ void loop()
   } else {  
     if (time_diff_s >= RECALC_INTERVAL_S) {
       time_solar_last_s = time_solar_s;
-      steps_wanted = tracker_calc_steps(time_solar_s + RECALC_INTERVAL_S/2.0);
-      spd = (steps_wanted - sstvars.dir*Astepper1.currentPosition())/(RECALC_INTERVAL_S/2);
-      // Max speed so we can rewind and ff with time.
-      if(fabs(spd) > 300) {
-        spd = (spd/fabs(spd)) * 300;
+      if(sst_debug) {
+        Serial.print(tracker_calc_steps(time_solar_s));
+        Serial.print(",");
+        Serial.println(Astepper1.currentPosition());
       }
+      steps_wanted = tracker_calc_steps(time_solar_s + RECALC_INTERVAL_S);
+      spd = (steps_wanted - sstvars.dir*Astepper1.currentPosition())/(RECALC_INTERVAL_S);
       Astepper1.setSpeed(sstvars.dir*spd);
-      Serial.println(spd);
+      if(sst_debug) {
+        Serial.println(spd);
+      }
     }
     Astepper1.runSpeed();
+//    int i = 0;
+//    for(i = 0; i < 66; i++) {
+ //     delayMicroseconds(75);
+  //  }
     check_end(sstvars.dir*Astepper1.currentPosition());
-    sst_console_read_serial();
   }
+  sst_console_read_serial();
 }
 
