@@ -1,18 +1,24 @@
-# starsynctrackers
+# StarSync Trackers
 Firmware for the tracker sold by [StarSync Trackers](https://starsynctrackers.com).
 
 ## Serial info and commands
 The tracker supports serial command. You will need to connect the tracker to your computer's USB port and use a serial terminal software.
 
 ### Serial terminal software
+
 #### Windows
+
 * Hyperterminal
 * [PuTTY](http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html)
 * [Bray++ Terminal](https://sites.google.com/site/terminalbpp/)
+
 #### Linux and OSX
+
 * [minicom](https://alioth.debian.org/projects/minicom/)
 * [Cutecom](http://cutecom.sourceforge.net/)
+
 #### Connection settings
+
 * Port/Device: would be the com port that gets made when you plug in the tracker. It might be something like COM5 on windows or /dev/ttyUSB0 on Linux.
 * Baud rate: 115200
 * Data bits: 8
