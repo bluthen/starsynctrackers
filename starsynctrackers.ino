@@ -34,7 +34,7 @@ static const float DIRECTION = 1.0; // 1 forward is forward; -1 + is forward is 
 // STOP_TYPE
 // 0 for switch button type
 // 1 for analog proximity type
-#define STOP_TYPE 1
+#define STOP_TYPE 0
 static const int STOP_ANALOG_POWER_PIN = 10; //Pins stop switch gets power from, Digital pins only.
 static const int STOP_ANALOG_POWER_STOP_VALUE = 800; // 0 - 1023 (0 closer, 1023 farther)
 static const int STOP_BUTTON_PIN = A2;      // The pin the stop push switch is on
@@ -305,6 +305,9 @@ void loop()
       }
       steps_wanted = tracker_calc_steps(time_solar_s + RECALC_INTERVAL_S);
       spd = (steps_wanted - sstvars.dir*Astepper1.currentPosition())/(RECALC_INTERVAL_S);
+      if(spd > 500) {
+        spd = 500;
+      }
       Astepper1.setSpeed(sstvars.dir*spd);
       if(sst_debug) {
         Serial.println(spd);

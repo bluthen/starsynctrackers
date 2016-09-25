@@ -16,7 +16,7 @@
 // 1 - Easy Driver https://www.sparkfun.com/products/12779 (http://www.schmalzhaus.com/EasyDriver/index.html)
 // 2 - Adafruit Motorshield V1 https://www.adafruit.com/products/81
 // 3 - Big Easy Driver https://www.sparkfun.com/products/12859 (http://www.schmalzhaus.com/BigEasyDriver/)
-#define STEPPER_DRIVER 3
+#define STEPPER_DRIVER 0
 
 #if STEPPER_DRIVER == 0
   #include <Adafruit_MotorShield.h>
