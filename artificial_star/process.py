@@ -190,17 +190,39 @@ def line_thickness(rows, cols, contours, contour_idx, contour_center):
     [vx, vy, x, y] = cv2.fitLine(contours[contour_idx], cv.CV_DIST_L2, 0, 0.01, 0.01)
     lefty = int((-x * vy / vx) + y)
     righty = int(((cols - 1 - x) * vy / vx) + y)
+    fit_line = ((cols - 1, righty), (0, lefty))
     cv2.line(mask0, (cols - 1, righty), (0, lefty), 1, 2)
 
     # perpendicular line
     m_perp = -vx/vy
+    print "Perp slope: ",
+    print m_perp
     b_perp = contour_center[1]-m_perp*contour_center[0]
     leftx = 0
-    rightx = cols-1
     lefty = m_perp*leftx + b_perp
-    righty = m_perp*rightx + b_perp
+    if lefty < 0 or lefty > rows-1:
+        if lefty < 0:
+            lefty = 0
+        else:
+            lefty = rows-1
+        leftx = (lefty-b_perp)/m_perp
 
-    print (lefty, righty)
+    rightx = cols-1
+    righty = m_perp*rightx + b_perp
+    if righty < 0 or righty > rows-1:
+        if righty < 0:
+            righty = 0
+        else:
+            righty = rows-1
+        rightx = (righty-b_perp)/m_perp
+
+    leftx = int(leftx)
+    lefty = int(lefty)
+    rightx = int(rightx)
+    righty = int(righty)
+
+    print "Perp line: ",
+    print ([leftx, lefty], [rightx, righty])
 
     cv2.line(mask0, (rightx, righty), (leftx, lefty), 1, 2)
 
@@ -212,15 +234,15 @@ def line_thickness(rows, cols, contours, contour_idx, contour_center):
     np.logical_and(mask1, mask2, mask3)
     thickness = np.sum(mask3)
     print "Thickness: " + str(thickness)
-    cv2.imshow('test', mask0)
-    cv2.waitKey(0)
-    cv2.imshow('test', mask1)
-    cv2.waitKey(0)
-    cv2.imshow('test', mask2)
-    cv2.waitKey(0)
-    cv2.imshow('test', mask3)
-    cv2.waitKey(0)
-    return thickness
+    #cv2.imshow('test', mask0)
+    #cv2.waitKey(0)
+    #cv2.imshow('test', mask1)
+    #cv2.waitKey(0)
+    #cv2.imshow('test', mask2)
+    #cv2.waitKey(0)
+    #cv2.imshow('test', mask3)
+    #cv2.waitKey(0)
+    return thickness, fit_line, ((leftx, lefty), (rightx, righty))
 
 def get_contour_box(contour):
     """
@@ -391,7 +413,9 @@ def analyize(args, queue):
     # If dec is zero can use line mode, otherwise do arc mode.
     queue.put({'status': 'update', 'message': 'Doing Line Thickness...'})
     rows, cols = img.shape[:2]
-    thickness = line_thickness(rows, cols, contours, contour_idx, contour_center)
+    thickness, fit_line, perp_line = line_thickness(rows, cols, contours, contour_idx, contour_center)
+    cv2.line(cimg, fit_line[0], fit_line[1], (255, 0, 255), 2)
+    cv2.line(cimg, perp_line[0], perp_line[1], (255, 0, 255), 2)
     # TODO: Do arc thickness, perpendicular arch.
 
     # Bound rectangle is used by both arc and line modes.
@@ -406,7 +430,7 @@ def analyize(args, queue):
     # Open
     #print "Drawing circle."
     #start_ts = datetime.datetime.now()
-    draw_circle_2(cimg, circ_center, circ_radius, [0, 0, 255], thickness=1.5)
+    draw_circle_2(cimg, circ_center, circ_radius, [0, 255, 255], thickness=1.5)
     #print "Drawing Circle time = %d" % ((datetime.datetime.now() - start_ts).total_seconds())
 
     if arc_mode:
