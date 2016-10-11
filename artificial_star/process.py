@@ -9,8 +9,9 @@ import exifread
 import os
 import datetime
 from scipy import optimize
+import getopt
 
-
+# TODO: Make this faster
 def draw_circle_2(cimg, origin, radius, color, thickness=2.5):
     """
     Draws circle on image. Supports very large radius, unlike the opencv methods.
@@ -185,10 +186,11 @@ def line_thickness(rows, cols, contours, contour_idx, contour_center):
     :return:
     """
     # fit line
+    mask0 = np.zeros((rows, cols))
     [vx, vy, x, y] = cv2.fitLine(contours[contour_idx], cv.CV_DIST_L2, 0, 0.01, 0.01)
     lefty = int((-x * vy / vx) + y)
     righty = int(((cols - 1 - x) * vy / vx) + y)
-    # cv2.line(cimg, (cols - 1, righty), (0, lefty), (0, 255, 0), 2)
+    cv2.line(mask0, (cols - 1, righty), (0, lefty), 1, 2)
 
     # perpendicular line
     m_perp = -vx/vy
@@ -198,9 +200,9 @@ def line_thickness(rows, cols, contours, contour_idx, contour_center):
     lefty = m_perp*leftx + b_perp
     righty = m_perp*rightx + b_perp
 
-    # print (lefty, righty)
+    print (lefty, righty)
 
-    # cv2.line(cimg, (rightx, righty), (leftx, lefty), (0, 255, 0), 2)
+    cv2.line(mask0, (rightx, righty), (leftx, lefty), 1, 2)
 
     mask1 = np.zeros((rows, cols))
     mask2 = np.zeros((rows, cols))
@@ -210,8 +212,14 @@ def line_thickness(rows, cols, contours, contour_idx, contour_center):
     np.logical_and(mask1, mask2, mask3)
     thickness = np.sum(mask3)
     print "Thickness: " + str(thickness)
-    # cv2.imshow('test', mask3)
-    # cv2.waitKey(0)
+    cv2.imshow('test', mask0)
+    cv2.waitKey(0)
+    cv2.imshow('test', mask1)
+    cv2.waitKey(0)
+    cv2.imshow('test', mask2)
+    cv2.waitKey(0)
+    cv2.imshow('test', mask3)
+    cv2.waitKey(0)
     return thickness
 
 def get_contour_box(contour):
@@ -271,7 +279,7 @@ def circle_arclength(rows, cols, box_int, circ_center, circ_radius):
     return arclength
 
 
-def arc_period_thickness(rows, cols, contours, contour_idx, circ_center, circ_radius):
+def arc_period_thickness(rows, cols, contours, contour_idx, circ_center, circ_radius, queue=None):
     mask1 = np.zeros((rows, cols))
     cv2.drawContours(mask1, contours, contour_idx, 1, thickness=cv.CV_FILLED)
 
@@ -280,48 +288,98 @@ def arc_period_thickness(rows, cols, contours, contour_idx, circ_center, circ_ra
     # TODO: Thickness by bysection
     trange = [1.5, 100]
     while True:
-        thickness = trange[0]+(trange[1] - trange[0])/2.0
+        if last_sum == -1:
+            thickness = trange[1]
+        else:
+            thickness = trange[0]+(trange[1] - trange[0])/2.0
         mask2 = np.zeros((rows, cols))
         mask3 = np.zeros((rows, cols))
+        queue.put({'status': 'update', 'message': 'Trying arc-thickness %d...' % (int(thickness),)})
         draw_circle_2(mask2, circ_center, circ_radius, 1, thickness=thickness)
         np.logical_and(mask1, mask2, mask3)
 
         this_sum = np.sum(mask3)
-        print thickness, this_sum
-        # cv2.imshow('test', mask3)
-        # cv2.waitKey(0)
+        print "In arc thick:",
+        print thickness, this_sum, last_sum
+        #cv2.imshow('test', mask3)
+        #cv2.waitKey(0)
 
-        if this_sum == last_sum:
+        if last_sum == -1:
+            pass
+        elif this_sum == last_sum:
             trange = [trange[0], thickness]
         else:
             trange = [thickness, trange[1]]
-        if abs(trange[0] - trange[1]) < 1:
+        if last_sum != -1 and abs(trange[0] - trange[1]) < 1:
             return thickness
         last_sum = this_sum
 
-def main():
-    arcsecs_per_pixel = 3.92 # TODO: Parameterize
-    time_rate = 1.0 # TODO: Parameterize
-    filename = sys.argv[1]
+def help(stream):
+    print >> stream, "Usage: %s [OPTION]... IMAGE_FILE.JPG" % (sys.argv[0],)
+    print >> stream, "  -h, --help                   show this screen"
+    print >> stream, "  --arcsecs-per-pixel=value    Use value for \"/pixel [required]"
+    print >> stream, "  --tracker-rate=1.0           Overwrite default tracker rate of 1.0"
+    print >> stream, "  --exposure-overwrite=seconds Overwrite exposure time than what is in header"
+    print >> stream, "  --gui                        Force gui"
+    print >> stream
+    print >> stream, "If any options are missing that is needed to run, it will launch GUI."
+    print >> stream
+    print >> stream, "Example Usage:"
+    print >> stream, "%s --arcseconds-per-pixel=3.92 IMG_4863.JPG" % (sys.argv[0],)
+    print >> stream
+
+def parse_args():
+    ret = {'arcsecs-per-pixel': 3.92, 'tracker-rate': 1.0, 'exposure-overwrite': None, 'filename': None, 'gui': False}
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'h', ['help', 'arcsecs-per-pixel=', 'tracker-rate=', 'exposure-overwrite=', 'gui'])
+    except getopt.GetoptError, err:
+        print >> sys.stderr, str(err)
+        help(sys.stderr)
+        sys.exit(1)
+    for o, a in opts:
+        if o in ('-h', '--help'):
+            help(sys.stdout)
+            sys.exit(0)
+        if o in ('--gui',):
+            ret['gui'] = True
+        else:
+            if o[2:] in ret:
+                ret[o[2:]] = float(a)
+    if len(args) >= 1:
+        print args
+        ret['filename'] = args[0]
+    return ret
+
+def analyize(args, queue):
+    arcsecs_per_pixel = args['arcsecs-per-pixel']
+    tracker_rate = args['tracker-rate']
+    filename = args['filename']
     name, ext = os.path.splitext(filename)
     cimg = cv2.imread(filename)
     img = cv2.imread(filename, 0)
-    with open(filename, 'rb') as f:
-        tags = exifread.process_file(f)
-        exposure_time = float(tags['EXIF ExposureTime'].printable)
-        print exposure_time
+    if args['exposure-overwrite']:
+        print "Using overwrite exposure time."
+        exposure_time = args['exposure-overwrite']
+    else:
+        with open(filename, 'rb') as f:
+            tags = exifread.process_file(f)
+            exposure_time = float(tags['EXIF ExposureTime'].printable)
+            print "EXIF ExposureTime: "+str(exposure_time)
 
     cv2.namedWindow('test', cv2.WINDOW_NORMAL)
     # cv2.imshow('test', img)
     # cv2.waitKey(0)
+    queue.put({'status': 'update', 'message': 'Getting Contours...'})
     contours, contour_idx = get_contours(img)
 
     contour_center = get_contour_center(contours[contour_idx])
+    print "Contour Center: "+str(contour_center)
 
+    queue.put({'status': 'update', 'message': 'Doing Circle Least Squares...'})
     circ_radius, circ_center = circle_least_squares(contours[contour_idx])
 
     print circ_radius
-    artificial_dec = 90.0 - circ_radius*3.92/(60.*60)
+    artificial_dec = 90.0 - circ_radius*arcsecs_per_pixel/(60.*60)
     arc_mode = False
     if artificial_dec < 0:
         print "Invalid Artificial dec %f degrees, settings to zero dec." % (artificial_dec,)
@@ -331,6 +389,7 @@ def main():
         print "Artificial Dec: %f" % (artificial_dec,)
 
     # If dec is zero can use line mode, otherwise do arc mode.
+    queue.put({'status': 'update', 'message': 'Doing Line Thickness...'})
     rows, cols = img.shape[:2]
     thickness = line_thickness(rows, cols, contours, contour_idx, contour_center)
     # TODO: Do arc thickness, perpendicular arch.
@@ -350,22 +409,23 @@ def main():
     draw_circle_2(cimg, circ_center, circ_radius, [0, 0, 255], thickness=1.5)
     #print "Drawing Circle time = %d" % ((datetime.datetime.now() - start_ts).total_seconds())
 
-
     if arc_mode:
         # Arclength
         arclength = circle_arclength(rows, cols, box_int, circ_center, circ_radius)
         arclength = rad_to_arcsec(arclength)
-        periodic_error = arc_period_thickness(rows, cols, contours, contour_idx, circ_center, circ_radius)*arcsecs_per_pixel
+        periodic_error = (arc_period_thickness(rows, cols, contours, contour_idx, circ_center, circ_radius, queue)-thickness)*arcsecs_per_pixel
     else:
         arclength = box_length*arcsecs_per_pixel
         periodic_error = (box_width - thickness)*arcsecs_per_pixel
 
-    expected_arclength = rad_to_arcsec(calc_time_theta(exposure_time))
-    error_asec_per_min = 60.0*(arclength-expected_arclength)/exposure_time
+    expected_arclength = rad_to_arcsec(calc_time_theta(tracker_rate*exposure_time))
+    error_asec_per_min = 60.0*(arclength-expected_arclength)/(tracker_rate*exposure_time)
 
     text = ""
     text += "Arcsec/Pixel: %f\"/px\n" % (arcsecs_per_pixel,)
+    text += "Artificial Dec: %f\n" % (artificial_dec,)
     text += "Exposure time: %fs\n" % (exposure_time,)
+    text += "Tracker Rate: %fs\n" % (tracker_rate,)
     text += "Star Thickness %fpx\n" % (thickness,)
     text += "Star Thickness %f\"\n" % (thickness*arcsecs_per_pixel,)
     text += "Periodic Pk-Pk Amplitude %f\"\n" % (periodic_error,)
@@ -379,13 +439,16 @@ def main():
     y0, dy = 50, 40
     for i, line in enumerate(text.split('\n')):
         y = y0 + i*dy
-        #cv2.putText(cimg, line, (50, y), font, 1.2, (0, 255, 0), 2)
+        cv2.putText(cimg, line, (50, y), font, 1.2, (0, 255, 0), 2)
 
+    analyzed = name+".analyzed"+ext
     cv2.imwrite(name+".analyzed"+ext, cimg)
-    csvfilename = os.path.join(os.path.dirname(filename), "sst_astar.csv")
-    csvexists = False
-    if os.path.isfile(csvfilename):
-        csvexists = True
+    return analyzed
+
+    #csvfilename = os.path.join(os.path.dirname(filename), "sst_astar.csv")
+    # csvexists = False
+    #if os.path.isfile(csvfilename):
+    #    csvexists = True
 
     #TODO: Fix this.
     #with open(csvfilename, 'ab') as f:
@@ -393,8 +456,26 @@ def main():
     #        print >> f, "\"filename\",\"Exposure(s)\",\"Line Thickness(px)\",\"Pk-Pk Error\",\"arc length\",\"expected arclength\", \"linear error\""
     #    print >> f, "\"%s\",%f,%f,%f,%f,%f,%f" % (os.path.basename(filename), exposure_time, thickness, A, biggest*arcsecs_per_pixel, lengthasec, linearerror)
 
-    cv2.imshow('test', cimg)
-    cv2.waitKey(0)
+    #cv2.imshow('test', cimg)
+    #cv2.waitKey(0)
+
+
+class DummyQueue():
+    def put(self, item, block=False, timeout=-1):
+        if 'status' in item and item['status'] == 'update':
+            print item
+
+
+def main():
+    args = parse_args()
+    #Do we have what we need to not need the gui?
+    if args['gui'] or (not args['filename'] or not args['arcsecs-per-pixel']):
+        import process_gui
+        process_gui.show(args)
+    else:
+        queue = DummyQueue()
+        fn = analyize(args, queue)
+        print "Wrote: %s" % (fn,)
 
 
 if __name__ == "__main__":
