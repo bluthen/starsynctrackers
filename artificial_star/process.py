@@ -296,7 +296,8 @@ def circle_arclength(rows, cols, box_int, circ_center, circ_radius):
                 end_points = [point1, point2, dist]
     #print "Ends: "+str(end_points)
     # Find arclength https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
-    d = math.sqrt((end_points[0][0] - end_points[1][0])**2.0 + (end_points[0][1] - end_points[1][1])**2.0)
+    #d = math.sqrt((end_points[0][0] - end_points[1][0])**2.0 + (end_points[0][1] - end_points[1][1])**2.0)
+    d = end_points[2]
     arclength = math.acos(1.0 - d**2.0/(2.0*circ_radius**2.0))
     return arclength
 
@@ -414,8 +415,8 @@ def analyize(args, queue):
     queue.put({'status': 'update', 'message': 'Doing Line Thickness...'})
     rows, cols = img.shape[:2]
     thickness, fit_line, perp_line = line_thickness(rows, cols, contours, contour_idx, contour_center)
-    cv2.line(cimg, fit_line[0], fit_line[1], (255, 0, 255), 2)
-    cv2.line(cimg, perp_line[0], perp_line[1], (255, 0, 255), 2)
+    cv2.line(cimg, fit_line[0], fit_line[1], (255, 0, 0), 2)
+    cv2.line(cimg, perp_line[0], perp_line[1], (255, 0, 0), 2)
     # TODO: Do arc thickness, perpendicular arch.
 
     # Bound rectangle is used by both arc and line modes.
@@ -430,13 +431,15 @@ def analyize(args, queue):
     # Open
     #print "Drawing circle."
     #start_ts = datetime.datetime.now()
-    draw_circle_2(cimg, circ_center, circ_radius, [0, 255, 255], thickness=1.5)
+    draw_circle_2(cimg, circ_center, circ_radius, [255, 0, 255], thickness=2)
     #print "Drawing Circle time = %d" % ((datetime.datetime.now() - start_ts).total_seconds())
 
     if arc_mode:
         # Arclength
         arclength = circle_arclength(rows, cols, box_int, circ_center, circ_radius)
+        arclength2 = arclength*circ_radius*arcsecs_per_pixel
         arclength = rad_to_arcsec(arclength)
+        print "ArcLength Debug: %f, %f" % (arclength, arclength2)
         periodic_error = (arc_period_thickness(rows, cols, contours, contour_idx, circ_center, circ_radius, queue)-thickness)*arcsecs_per_pixel
     else:
         arclength = box_length*arcsecs_per_pixel
