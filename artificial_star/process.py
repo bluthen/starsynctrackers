@@ -11,6 +11,8 @@ import datetime
 from scipy import optimize
 import getopt
 
+debug = False
+
 # TODO: Make this faster
 def draw_circle_2(cimg, origin, radius, color, thickness=2.5):
     """
@@ -345,6 +347,8 @@ def help(stream):
     print >> stream, "  --exposure-overwrite=seconds Overwrite exposure time than what is in header"
     print >> stream, "  --gui                        Force gui"
     print >> stream
+    print >> stream, "  --debug                      Show debugging images"
+    print >> stream
     print >> stream, "If any options are missing that is needed to run, it will launch GUI."
     print >> stream
     print >> stream, "Example Usage:"
@@ -352,9 +356,9 @@ def help(stream):
     print >> stream
 
 def parse_args():
-    ret = {'arcsecs-per-pixel': 3.92, 'tracker-rate': 1.0, 'exposure-overwrite': None, 'filename': None, 'gui': False}
+    ret = {'arcsecs-per-pixel': 3.92, 'tracker-rate': 1.0, 'exposure-overwrite': None, 'filename': None, 'gui': False, 'debug': False}
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'h', ['help', 'arcsecs-per-pixel=', 'tracker-rate=', 'exposure-overwrite=', 'gui'])
+        opts, args = getopt.getopt(sys.argv[1:], 'h', ['help', 'arcsecs-per-pixel=', 'tracker-rate=', 'exposure-overwrite=', 'gui', 'debug'])
     except getopt.GetoptError, err:
         print >> sys.stderr, str(err)
         help(sys.stderr)
@@ -365,6 +369,8 @@ def parse_args():
             sys.exit(0)
         if o in ('--gui',):
             ret['gui'] = True
+        elif o in ('--debug',):
+            ret['debug'] = True
         else:
             if o[2:] in ret:
                 ret[o[2:]] = float(a)
@@ -374,6 +380,9 @@ def parse_args():
     return ret
 
 def analyize(args, queue):
+    global debug
+    if 'debug' in args and args['debug']:
+        debug = True
     arcsecs_per_pixel = args['arcsecs-per-pixel']
     tracker_rate = args['tracker-rate']
     filename = args['filename']
@@ -389,7 +398,8 @@ def analyize(args, queue):
             exposure_time = float(tags['EXIF ExposureTime'].printable)
             print "EXIF ExposureTime: "+str(exposure_time)
 
-    cv2.namedWindow('test', cv2.WINDOW_NORMAL)
+    if debug:
+        cv2.namedWindow('test', cv2.WINDOW_NORMAL)
     # cv2.imshow('test', img)
     # cv2.waitKey(0)
     queue.put({'status': 'update', 'message': 'Getting Contours...'})
