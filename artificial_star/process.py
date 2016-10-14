@@ -294,7 +294,7 @@ def circle_arclength(rows, cols, box_int, circ_center, circ_radius):
             dist = np.linalg.norm([point1[0] - point2[0], point1[1] - point2[1]])
             if dist > end_points[2]:
                 end_points = [point1, point2, dist]
-    #print "Ends: "+str(end_points)
+    print "Ends: "+str(end_points)
     # Find arclength https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
     #d = math.sqrt((end_points[0][0] - end_points[1][0])**2.0 + (end_points[0][1] - end_points[1][1])**2.0)
     d = end_points[2]
@@ -437,6 +437,10 @@ def analyize(args, queue):
     if arc_mode:
         # Arclength
         arclength = circle_arclength(rows, cols, box_int, circ_center, circ_radius)
+        # Compression from dec
+        # TODO: Do better about thinking in terms of spherical coordinates
+        arclength = arclength*(1/math.cos(math.pi*artificial_dec/180.0))
+        #arclength = arclength*(artificial_dec/90.0)
         arclength2 = arclength*circ_radius*arcsecs_per_pixel
         arclength = rad_to_arcsec(arclength)
         print "ArcLength Debug: %f, %f" % (arclength, arclength2)
@@ -450,16 +454,16 @@ def analyize(args, queue):
 
     text = ""
     text += "Arcsec/Pixel: %f\"/px\n" % (arcsecs_per_pixel,)
-    text += "Artificial Dec: %f\n" % (artificial_dec,)
+    text += "Artificial Dec: %fdeg\n" % (artificial_dec,)
     text += "Exposure time: %fs\n" % (exposure_time,)
-    text += "Tracker Rate: %fs\n" % (tracker_rate,)
+    text += "Tracker Rate: %.4fX\n" % (tracker_rate,)
     text += "Star Thickness %fpx\n" % (thickness,)
     text += "Star Thickness %f\"\n" % (thickness*arcsecs_per_pixel,)
-    text += "Periodic Pk-Pk Amplitude %f\"\n" % (periodic_error,)
+    text += "Periodic Pk-Pk Error %f\"\n" % (periodic_error,)
     text += "Arc length: %f\"\n" % (arclength,)
     text += "Expected Arc Length: %f\"\n" % (expected_arclength,)
     text += "Arc Length error per minute: %f\"/min\n" % (error_asec_per_min,)
-    text += "Time Adjustment needed: %f\n" % (expected_arclength/arclength)
+    text += "Correction Time Multiplier: %f\n" % (expected_arclength/arclength)
     print text
 
     font = cv2.FONT_HERSHEY_SIMPLEX
