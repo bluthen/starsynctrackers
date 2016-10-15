@@ -1,5 +1,5 @@
 from Tkinter import *
-from PIL import Image, ImageTk
+import subprocess
 import tkFileDialog
 import tkMessageBox
 import traceback
@@ -7,6 +7,7 @@ import process
 import threading
 import Queue
 import time
+import os
 
 def process_wrapper(args, queue):
     fn = None
@@ -68,8 +69,12 @@ class Application(Frame):
     def show_image(self, fn):
         print "Doing show_image."
         print fn
-        img = Image.open(fn)
-        img.show()
+        if os.name == 'nt':
+            subprocess.Popen('explorer "%s"' % (fn.replace('/', '\\'),))
+        elif os.name=='mac':
+            subprocess.Popen('open "%s"' % (fn,), shell=True)
+        elif os.name=='posix':
+            subprocess.Popen('xdg-open "%s"' % (fn,), shell=True)
 
     def update_status(self, queue):
         try:
