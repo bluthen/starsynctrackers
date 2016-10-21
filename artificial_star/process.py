@@ -387,8 +387,9 @@ def analyize(args, queue):
     tracker_rate = args['tracker-rate']
     filename = args['filename']
     name, ext = os.path.splitext(filename)
-    cimg = cv2.imread(filename)
+    #cimg = cv2.imread(filename)
     img = cv2.imread(filename, 0)
+    cimg = np.zeros((img.shape[0], img.shape[1], 3), np.uint8)
     if args['exposure-overwrite']:
         print "Using overwrite exposure time."
         exposure_time = args['exposure-overwrite']
@@ -403,6 +404,7 @@ def analyize(args, queue):
     # cv2.imshow('test', img)
     # cv2.waitKey(0)
     queue.put({'status': 'update', 'message': 'Getting Contours...'})
+    img = cv2.GaussianBlur(img, (15,15), 0)
     contours, contour_idx = get_contours(img)
 
     contour_center = get_contour_center(contours[contour_idx])
@@ -425,14 +427,11 @@ def analyize(args, queue):
     queue.put({'status': 'update', 'message': 'Doing Line Thickness...'})
     rows, cols = img.shape[:2]
     thickness, fit_line, perp_line = line_thickness(rows, cols, contours, contour_idx, contour_center)
-    cv2.line(cimg, fit_line[0], fit_line[1], (255, 0, 0), 2)
-    cv2.line(cimg, perp_line[0], perp_line[1], (255, 0, 0), 2)
     # TODO: Do arc thickness, perpendicular arch.
 
     # Bound rectangle is used by both arc and line modes.
     # Contour bound rectangle
     box, box_int = get_contour_box(contours[contour_idx])
-    cv2.drawContours(cimg, [box_int], 0, (0, 0, 255), 1)
 
     box_width, box_length = box_length_width(box)
     # print box_width, box_length
@@ -441,7 +440,6 @@ def analyize(args, queue):
     # Open
     #print "Drawing circle."
     #start_ts = datetime.datetime.now()
-    draw_circle_2(cimg, circ_center, circ_radius, [255, 0, 255], thickness=2)
     #print "Drawing Circle time = %d" % ((datetime.datetime.now() - start_ts).total_seconds())
 
     if arc_mode:
@@ -454,13 +452,25 @@ def analyize(args, queue):
         arclength2 = arclength*circ_radius*arcsecs_per_pixel
         arclength = rad_to_arcsec(arclength)
         print "ArcLength Debug: %f, %f" % (arclength, arclength2)
-        periodic_error = (arc_period_thickness(rows, cols, contours, contour_idx, circ_center, circ_radius, queue)-thickness)*arcsecs_per_pixel
+        periodic_error_thickness = arc_period_thickness(rows, cols, contours, contour_idx, circ_center, circ_radius, queue)
+        periodic_error = (periodic_error_thickness-thickness)*arcsecs_per_pixel
     else:
         arclength = box_length*arcsecs_per_pixel
         periodic_error = (box_width - thickness)*arcsecs_per_pixel
 
     expected_arclength = rad_to_arcsec(calc_time_theta(tracker_rate*exposure_time))
     error_asec_per_min = 60.0*(arclength-expected_arclength)/(tracker_rate*exposure_time)
+
+    if arc_mode:
+        draw_circle_2(cimg, circ_center, circ_radius, (255, 128, 0), thickness=periodic_error_thickness)
+    cv2.drawContours(cimg, contours, contour_idx, (0, 255, 0), thickness=cv.CV_FILLED)
+
+    cv2.line(cimg, perp_line[0], perp_line[1], (255, 0, 0), 2)
+    if arc_mode:
+        draw_circle_2(cimg, circ_center, circ_radius, (255, 0, 255), thickness=2.0)
+    else:
+        cv2.drawContours(cimg, [box_int], 0, (0, 0, 255), 1)
+        cv2.line(cimg, fit_line[0], fit_line[1], (255, 0, 0), 2)
 
     text = ""
     text += "Arcsec/Pixel: %f\"/px\n" % (arcsecs_per_pixel,)
@@ -482,8 +492,8 @@ def analyize(args, queue):
         y = y0 + i*dy
         cv2.putText(cimg, line, (50, y), font, 1.2, (0, 255, 0), 2)
 
-    analyzed = name+".analyzed"+ext
-    cv2.imwrite(name+".analyzed"+ext, cimg)
+    analyzed = name+".analyzed"+".png"
+    cv2.imwrite(analyzed, cimg)
     return analyzed
 
     #csvfilename = os.path.join(os.path.dirname(filename), "sst_astar.csv")
