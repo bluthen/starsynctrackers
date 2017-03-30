@@ -272,7 +272,7 @@ def box_length_width(box):
     else:
         return dist2, dist1
 
-def circle_arclength(rows, cols, box_int, circ_center, circ_radius):
+def circle_arclength(rows, cols, box_int, circ_center, circ_radius, thickness):
     """
     Calculates arclength from circle and artificial star box.
     :param rows: rows in image
@@ -299,6 +299,7 @@ def circle_arclength(rows, cols, box_int, circ_center, circ_radius):
     print "Ends: "+str(end_points)
     # Find arclength https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
     #d = math.sqrt((end_points[0][0] - end_points[1][0])**2.0 + (end_points[0][1] - end_points[1][1])**2.0)
+    #TODO: subtracting thickness is not super exact here.
     d = end_points[2]
     arclength = math.acos(1.0 - d**2.0/(2.0*circ_radius**2.0))
     return arclength
@@ -444,7 +445,8 @@ def analyize(args, queue):
 
     if arc_mode:
         # Arclength
-        arclength = circle_arclength(rows, cols, box_int, circ_center, circ_radius)
+        # TODO: Remove thickness from arclength
+        arclength = circle_arclength(rows, cols, box_int, circ_center, circ_radius, thickness)
         # Compression from dec
         # TODO: Do better about thinking in terms of spherical coordinates
         arclength = arclength*(1/math.cos(math.pi*artificial_dec/180.0))
@@ -455,7 +457,7 @@ def analyize(args, queue):
         periodic_error_thickness = arc_period_thickness(rows, cols, contours, contour_idx, circ_center, circ_radius, queue)
         periodic_error = (periodic_error_thickness-thickness)*arcsecs_per_pixel
     else:
-        arclength = box_length*arcsecs_per_pixel
+        arclength = (box_length - thickness) * arcsecs_per_pixel
         periodic_error = (box_width - thickness)*arcsecs_per_pixel
 
     expected_arclength = rad_to_arcsec(calc_time_theta(tracker_rate*exposure_time))
