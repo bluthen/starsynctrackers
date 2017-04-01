@@ -299,9 +299,10 @@ def circle_arclength(rows, cols, box_int, circ_center, circ_radius, thickness):
     print "Ends: "+str(end_points)
     # Find arclength https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
     #d = math.sqrt((end_points[0][0] - end_points[1][0])**2.0 + (end_points[0][1] - end_points[1][1])**2.0)
-    #TODO: subtracting thickness is not super exact here.
     d = end_points[2]
     arclength = math.acos(1.0 - d**2.0/(2.0*circ_radius**2.0))
+    arclength_thick = math.acos(1.0 - thickness**2.0/(2.0*circ_radius**2.0))
+    arclength = arclength - arclength_thick
     return arclength
 
 
@@ -449,7 +450,7 @@ def analyize(args, queue):
         arclength = circle_arclength(rows, cols, box_int, circ_center, circ_radius, thickness)
         # Compression from dec
         # TODO: Do better about thinking in terms of spherical coordinates
-        arclength = arclength*(1/math.cos(math.pi*artificial_dec/180.0))
+        #arclength = arclength*(1/math.cos(math.pi*artificial_dec/180.0))
         #arclength = arclength*(artificial_dec/90.0)
         arclength2 = arclength*circ_radius*arcsecs_per_pixel
         arclength = rad_to_arcsec(arclength)
