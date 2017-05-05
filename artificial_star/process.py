@@ -168,13 +168,27 @@ def circle_least_squares(contour):
     :return: (radius, center) The radius and center of the circle
     """
     # http://scipy-cookbook.readthedocs.io/items/Least_Squares_Circle.html
+
+    #If concave
     contour_shape = contour.shape
     contour_r = np.reshape(contour, [contour_shape[0], contour_shape[2]]).T
     center, ier = optimize.leastsq(gen_f2(contour_r), (3888, 3888))
     r_i2 = calc_r(contour_r, center[0], center[1])
     r_2 = np.mean(r_i2)
     r_residu2 = np.sum((r_i2 - r_2)**2.0)
-    return r_2, center
+
+    #If convex
+    contour_shape = contour.shape
+    contour_r = np.reshape(contour, [contour_shape[0], contour_shape[2]]).T
+    center_b, ier = optimize.leastsq(gen_f2(contour_r), (0, 0))
+    r_i2 = calc_r(contour_r, center_b[0], center_b[1])
+    r_2_b = np.mean(r_i2)
+    r_residu2 = np.sum((r_i2 - r_2)**2.0)
+
+    if r_2_b < r_2:
+        return r_2_b, center_b
+    else:
+        return r_2, center
 
 
 def line_thickness(rows, cols, contours, contour_idx, contour_center):
@@ -294,17 +308,17 @@ def circle_arclength(rows, cols, box_int, circ_center, circ_radius, thickness):
         for j in range(len(arcindex[0])):
             point2 = [arcindex[0][j], arcindex[1][j]]
             dist = np.linalg.norm([point1[0] - point2[0], point1[1] - point2[1]])
+            #dist = math.sqrt((point1[0]-point2[0])**2.0 + (point1[1]-point2[1])**2.0)
             if dist > end_points[2]:
                 end_points = [point1, point2, dist]
     print "Ends: "+str(end_points)
     # Find arclength https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
     #d = math.sqrt((end_points[0][0] - end_points[1][0])**2.0 + (end_points[0][1] - end_points[1][1])**2.0)
     d = end_points[2]
-    arclength = math.acos(1.0 - d**2.0/(2.0*circ_radius**2.0))
-    arclength_thick = math.acos(1.0 - thickness**2.0/(2.0*circ_radius**2.0))
+    arclength = math.acos(1.0 - ((d**2.0)/(2.0*(circ_radius**2.0))))
+    arclength_thick = math.acos(1.0 - (thickness**2.0)/(2.0*(circ_radius**2.0)))
     arclength = arclength - arclength_thick
-    return arclength
-
+    return arclength, end_points
 
 def arc_period_thickness(rows, cols, contours, contour_idx, circ_center, circ_radius, queue=None):
     mask1 = np.zeros((rows, cols))
@@ -415,8 +429,9 @@ def analyize(args, queue):
     queue.put({'status': 'update', 'message': 'Doing Circle Least Squares...'})
     circ_radius, circ_center = circle_least_squares(contours[contour_idx])
 
-    print circ_radius
-    artificial_dec = 90.0 - circ_radius*arcsecs_per_pixel/(60.*60)
+    print "Circle:", circ_radius, circ_center
+    #artificial_dec_old = 90.0 - circ_radius*arcsecs_per_pixel/(60.*60)
+    artificial_dec = (180.0/math.pi)*math.acos(circ_radius*arcsecs_per_pixel/(90.0*60.0*60.0))
     arc_mode = False
     if artificial_dec < 0:
         print "Invalid Artificial dec %f degrees, settings to zero dec." % (artificial_dec,)
@@ -447,14 +462,10 @@ def analyize(args, queue):
     if arc_mode:
         # Arclength
         # TODO: Remove thickness from arclength
-        arclength = circle_arclength(rows, cols, box_int, circ_center, circ_radius, thickness)
+        arclength, arclength_endpoints = circle_arclength(rows, cols, box_int, circ_center, circ_radius, thickness)
         # Compression from dec
-        # TODO: Do better about thinking in terms of spherical coordinates
-        #arclength = arclength*(1/math.cos(math.pi*artificial_dec/180.0))
-        #arclength = arclength*(artificial_dec/90.0)
-        arclength2 = arclength*circ_radius*arcsecs_per_pixel
+        #arclength = arclength*(1.0/math.cos(artificial_dec))
         arclength = rad_to_arcsec(arclength)
-        print "ArcLength Debug: %f, %f" % (arclength, arclength2)
         periodic_error_thickness = arc_period_thickness(rows, cols, contours, contour_idx, circ_center, circ_radius, queue)
         periodic_error = (periodic_error_thickness-thickness)*arcsecs_per_pixel
     else:
@@ -471,6 +482,8 @@ def analyize(args, queue):
     cv2.line(cimg, perp_line[0], perp_line[1], (255, 0, 0), 2)
     if arc_mode:
         draw_circle_2(cimg, circ_center, circ_radius, (255, 0, 255), thickness=2.0)
+        cv2.circle(cimg, (arclength_endpoints[0][1], arclength_endpoints[0][0]), 5, (255, 0, 255), thickness=-1)
+        cv2.circle(cimg, (arclength_endpoints[1][1], arclength_endpoints[1][0]), 5, (255, 0, 255), thickness=-1)
     else:
         cv2.drawContours(cimg, [box_int], 0, (0, 0, 255), 1)
         cv2.line(cimg, fit_line[0], fit_line[1], (255, 0, 0), 2)
